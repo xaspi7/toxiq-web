@@ -1,0 +1,10 @@
+dist/
+node_modules/
+.DS_Store
+*.log
+.env
+.env.*
+!.env.example
+qa/
+docs/TOXIQ_Brand_Manual_v0.2.pdf
+docs/CONCEPT.md

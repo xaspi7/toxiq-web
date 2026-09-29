@@ -37,11 +37,13 @@ npm run preview
 | `styles.css` | Brand tokens, editorial layout a responsive pravidla |
 | `app.js` | Barevné varianty, profily a demo maker |
 | `assets/` | Schválené SVG logo a produktové nákresy |
-| `docs/` | Manuál, koncept a poznámky k ověření |
+| `docs/` | Poznámky k ověření |
 | `scripts/` | Lokální server a statický build |
 | `AGENTS.md` | Závazná pravidla pro další úpravy |
 
 ## Limity konceptu
+
+Původní brand manuál a interní dokument s konceptem nejsou součástí veřejného repozitáře. Jejich případné zveřejnění vyžaduje samostatný souhlas vlastníka.
 
 Žádné objednávky, platby ani komunikace s hardwarem. Nákresy jsou stylizovaný vizuální směr, nikoli výrobní CAD nebo fotografie hotového produktu. Wired a Wireless jsou plánované směry, finální parametry a cena nejsou potvrzené. Exportované JSON je formát tohoto demo webu, nikoli garantovaný formát budoucího firmware.
 
