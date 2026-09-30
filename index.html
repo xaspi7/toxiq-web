@@ -14,8 +14,8 @@
   <a class="skip-link" href="#main">Přejít na obsah</a>
   <header class="site-header wrap">
     <a class="brand" href="#" aria-label="TOXIQ — úvod"><img class="brand-image" src="assets/wordmark-black.svg" alt="TOXIQ" width="338" height="135"></a>
-    <nav aria-label="Hlavní navigace"><a href="#produkt">Produkt</a><a href="#makra">Konfigurátor</a><a href="#themes">Themes</a></nav>
-    <a class="header-call" href="#makra">Zkus to.</a>
+    <nav aria-label="Hlavní navigace"><a href="#produkt">Produkt</a><a href="#makra">Profily</a><a href="#themes">Themes</a></nav>
+    <a class="header-call" href="#makra">Prohlédnout profily</a>
   </header>
   <main id="main">
     <section class="hero wrap" aria-labelledby="hero-heading">
@@ -23,49 +23,43 @@
         <p class="eyebrow">Six keys. Your call.</p>
         <h1 id="hero-heading">GG.<br><span>GO NEXT.</span></h1>
         <p class="hero-description">Míň psaní. Víc hraní.<br>Šest kláves na všechno, co nechceš psát znovu.</p>
-        <a class="text-action" href="#makra">Vyzkoušet makra <span aria-hidden="true">↗</span></a>
+        <a class="text-action" href="#makra">Prohlédnout profily <span aria-hidden="true">↗</span></a>
       </div>
       <div class="hero-product">
-        <div class="product-topline"><span>TOXIQ / WIRELESS</span><span>VE VÝVOJI</span></div>
         <img id="product-image" class="product-image" src="assets/product-black.svg" alt="Koncept černého makropadu TOXIQ se šesti klávesami BARON, DRAKE, PUSH, BACK, PING a GG." width="344" height="266">
         <div class="product-bottomline"><p>Malý pad.<br><strong>Velký jungle diff.</strong></p><div class="colorway-options" role="group" aria-label="Barevná varianta"><button type="button" data-colorway="black" aria-pressed="true">Black / Lime</button><button type="button" data-colorway="white" aria-pressed="false">White / Violet</button></div></div>
       </div>
-      <div class="hero-foot"><span>PROGRAMOVATELNÝ GAMING PAD</span><a href="#produkt">Poznej TOXIQ <span aria-hidden="true">↓</span></a><span>01 / LESS TYPING</span></div>
     </section>
 
     <section id="produkt" class="product-section wrap section-space" aria-labelledby="product-heading">
       <div class="section-intro"><p class="eyebrow">01 / Malý hardware. Vlastní attitude.</p><h2 id="product-heading">SIX KEYS.<br><span class="accent">ZERO EXCUSES.</span></h2></div>
       <div class="product-story"><p class="lead">Call na Barona. Oblíbená zkratka.<br>Nebo prostě dobře načasované GG.</p><p>TOXIQ je malý mechanický pad pro tvoje opakované akce. Každé klávese přiřadíš vlastní text nebo zkratku. Čistý vzhled, žádný balast. Ty rozhoduješ, co se stane po stisku.</p></div>
       <dl class="spec-list"><div><dt>06</dt><dd>Programovatelných<br>mechanických kláves</dd></div><div><dt>3 × 2</dt><dd>Klávesy na dosah.<br>Místo vedle klávesnice.</dd></div><div><dt>YOU</dt><dd>Vlastní texty.<br>Vlastní zkratky.</dd></div></dl>
-      <div class="editions"><div><p class="eyebrow">01 / WIRED</p><h3>Plug in.<br>Lock in.</h3><p>Směr kabelové varianty.<br>Jednoduše přes USB-C.</p></div><div><p class="eyebrow">02 / WIRELESS</p><h3>No cable.<br>Same calls.</h3><p>Směr bezdrátové varianty.<br>Bluetooth, USB-C pro nabíjení.</p></div><p class="development-note">TOXIQ je ve vývoji. Finální parametry, cena a dostupnost budou oznámeny před uvedením.</p></div>
+      <div class="editions"><div><p class="eyebrow">01 / WIRED</p><h3>Plug in.<br>Lock in.</h3><p>Směr kabelové varianty.<br>Jednoduše přes USB-C.</p></div><div><p class="eyebrow">02 / WIRELESS</p><h3>No cable.<br>Same calls.</h3><p>Směr bezdrátové varianty.<br>Bluetooth, USB-C pro nabíjení.</p></div></div>
     </section>
 
     <section id="makra" class="macro-section section-space" aria-labelledby="macro-heading">
       <div class="wrap">
-        <div class="macro-heading"><div><p class="eyebrow">02 / Konfigurátor — interaktivní demo</p><h2 id="macro-heading">YOUR KEYS.<br><span class="accent">YOUR CALL.</span></h2></div><p>Vyber klávesu. Napiš vlastní call.<br>Pak ji zkus stisknout.</p></div>
-        <div class="config-top"><div role="group" aria-label="Profil" class="profile-options"><button type="button" data-profile="moba" aria-pressed="true">MOBA</button><button type="button" data-profile="fps" aria-pressed="false">FPS</button><button type="button" data-profile="creator" aria-pressed="false">CREATOR</button></div><p>06 KEYS / 01 PROFILE</p></div>
-        <div class="config-layout"><div>
-          <div id="key-grid" class="key-grid" role="group" aria-label="Vyber klávesu k úpravě"></div>
-          <div class="demo-output"><p class="eyebrow">POSLEDNÍ CALL</p><p id="macro-output" aria-live="polite" aria-atomic="true">Your teammates are waiting.</p></div>
-        </div><form id="macro-form" class="key-editor">
-          <p class="eyebrow" id="selected-number">SELECTED KEY / 01</p>
-          <h3 id="selected-label">BARON</h3>
-          <label for="key-label">Název klávesy</label><input id="key-label" name="label" maxlength="12" required autocomplete="off" value="BARON">
-          <label for="key-type">Typ akce</label><select id="key-type" name="type"><option value="text">Textové makro</option><option value="shortcut">Klávesová zkratka</option></select>
-          <label id="value-label" for="key-value">Text makra</label><input id="key-value" name="value" maxlength="160" required autocomplete="off" value="BARON NOW">
-          <div class="editor-actions"><button type="submit" class="text-action">Uložit klávesu <span aria-hidden="true">↗</span></button><button type="button" id="test-key">Zkusit stisk</button></div>
-          <p id="editor-feedback" role="status" class="feedback">Změny se ukládají jen v tomto prohlížeči.</p>
-        </form></div>
-        <div class="config-footer"><p>Webové demo simuluje stisk. S fyzickým padem nekomunikuje.</p><div><button type="button" id="export-profile">Export profilu</button><button type="button" id="reset-profile">Obnovit profil</button></div></div>
+        <div class="macro-heading"><div><p class="eyebrow">02 / Šest kláves. Spousta možností.</p><h2 id="macro-heading">YOUR KEYS.<br><span class="accent">YOUR CALL.</span></h2></div><p>Herní calls i každodenní zkratky.<br>Podívej se, co můžeš mít po ruce.</p></div>
+        <div class="config-top"><div role="group" aria-label="Ukázkové profily" class="profile-options"><button type="button" data-profile="moba" aria-pressed="true">MOBA</button><button type="button" data-profile="fps" aria-pressed="false">FPS</button><button type="button" data-profile="creator" aria-pressed="false">CREATOR</button></div><p>06 KEYS / YOUR SHORTCUTS</p></div>
+        <div class="config-layout">
+          <div id="key-grid" class="key-grid" role="list" aria-label="Příklady akcí profilu MOBA"></div>
+          <div class="profile-story" aria-live="polite" aria-atomic="true">
+            <p id="profile-kind" class="eyebrow">TEXTOVÁ MAKRA</p>
+            <h3 id="profile-title">CALL THE SHOTS.</h3>
+            <p id="profile-description">Baron, drake nebo společný reset. Krátké calls po ruce, zatímco se soustředíš na hru.</p>
+            <p class="profile-note">Ukázkové rozložení. Každé klávese přiřadíš vlastní akci.</p>
+          </div>
+        </div>
       </div>
     </section>
 
     <section id="themes" class="themes-section wrap section-space" aria-labelledby="themes-heading">
-      <div><p class="eyebrow">03 / Same pad. Different game.</p><h2 id="themes-heading">PICK YOUR<br><span class="accent">PERSONALITY.</span></h2><p class="theme-intro">Jedna značka. Tvoje klávesy.<br>Vyzkoušej ukázkové profily pro různé playstyles.</p></div>
+      <div><p class="eyebrow">03 / Same pad. Different game.</p><h2 id="themes-heading">PICK YOUR<br><span class="accent">PERSONALITY.</span></h2><p class="theme-intro">Jedna značka. Tvoje klávesy.<br>Prohlédni si ukázkové profily pro různé playstyles.</p></div>
       <div class="theme-list"><button type="button" data-load-profile="moba"><span class="theme-number">01</span><span><strong>MOBA</strong><small>Objectives. Calls. GG.</small></span><span aria-hidden="true">↗</span></button><button type="button" data-load-profile="fps"><span class="theme-number">02</span><span><strong>FPS</strong><small>Info first. Aim later.</small></span><span aria-hidden="true">↗</span></button><button type="button" data-load-profile="creator"><span class="theme-number">03</span><span><strong>CREATOR</strong><small>Less clicking. More creating.</small></span><span aria-hidden="true">↗</span></button></div>
     </section>
     <section class="closing wrap" aria-label="TOXIQ"><div><p class="eyebrow">Hardware for bad decisions.</p><p class="closing-line">PRESS FIRST.<br><span class="accent">THINK LATER.</span></p></div><img class="signature" src="assets/signature-q.svg" alt="" width="142" height="142"></section>
   </main>
-  <footer class="site-footer wrap"><a class="brand" href="#" aria-label="TOXIQ — zpět nahoru"><img class="brand-image" src="assets/wordmark-black.svg" alt="TOXIQ" width="338" height="135"></a><p>SIX KEYS. YOUR CALL.</p><p>© <span id="year">2026</span> TOXIQ / KONCEPT VE VÝVOJI</p></footer>
+  <footer class="site-footer wrap"><a class="brand" href="#" aria-label="TOXIQ — zpět nahoru"><img class="brand-image" src="assets/wordmark-black.svg" alt="TOXIQ" width="338" height="135"></a><p>SIX KEYS. YOUR CALL.</p><p>© <span id="year">2026</span> TOXIQ</p></footer>
 </body>
 </html>
