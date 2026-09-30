@@ -23,11 +23,13 @@
         <p class="eyebrow">Six keys. Your call.</p>
         <h1 id="hero-heading">GG.<br><span>GO NEXT.</span></h1>
         <p class="hero-description">Míň psaní. Víc hraní.<br>Šest kláves na všechno, co nechceš psát znovu.</p>
-        <a class="text-action" href="#makra">Prohlédnout profily <span aria-hidden="true">↗</span></a>
       </div>
       <div class="hero-product">
         <img id="product-image" class="product-image" src="assets/product-black.svg" alt="Koncept černého makropadu TOXIQ se šesti klávesami BARON, DRAKE, PUSH, BACK, PING a GG." width="344" height="266">
-        <div class="product-bottomline"><p>Malý pad.<br><strong>Velký jungle diff.</strong></p><div class="colorway-options" role="group" aria-label="Barevná varianta"><button type="button" data-colorway="black" aria-pressed="true">Black / Lime</button><button type="button" data-colorway="white" aria-pressed="false">White / Violet</button></div></div>
+        <div class="product-bottomline"><p>Malý pad.<br><strong>Velký jungle diff.</strong></p><div class="colorway-options" role="group" aria-label="Barevná varianta">
+          <button class="switch-option" type="button" data-colorway="black" aria-pressed="true" aria-label="Black / Lime"><span class="switch-label">Black</span><span class="switch-caption">Lime</span></button>
+          <button class="switch-option" type="button" data-colorway="white" aria-pressed="false" aria-label="White / Violet"><span class="switch-label">White</span><span class="switch-caption">Violet</span></button>
+        </div></div>
       </div>
     </section>
 
@@ -41,7 +43,11 @@
     <section id="makra" class="macro-section section-space" aria-labelledby="macro-heading">
       <div class="wrap">
         <div class="macro-heading"><div><p class="eyebrow">02 / Šest kláves. Spousta možností.</p><h2 id="macro-heading">YOUR KEYS.<br><span class="accent">YOUR CALL.</span></h2></div><p>Herní calls i každodenní zkratky.<br>Podívej se, co můžeš mít po ruce.</p></div>
-        <div class="config-top"><div role="group" aria-label="Ukázkové profily" class="profile-options"><button type="button" data-profile="moba" aria-pressed="true">MOBA</button><button type="button" data-profile="fps" aria-pressed="false">FPS</button><button type="button" data-profile="creator" aria-pressed="false">CREATOR</button></div><p>06 KEYS / YOUR SHORTCUTS</p></div>
+        <div class="config-top"><div role="group" aria-label="Ukázkové profily" class="profile-options">
+          <button class="switch-option" type="button" data-profile="moba" aria-pressed="true" aria-label="MOBA"><span class="switch-index" aria-hidden="true">01</span><span class="switch-label">MOBA</span></button>
+          <button class="switch-option" type="button" data-profile="fps" aria-pressed="false" aria-label="FPS"><span class="switch-index" aria-hidden="true">02</span><span class="switch-label">FPS</span></button>
+          <button class="switch-option" type="button" data-profile="creator" aria-pressed="false" aria-label="CREATOR"><span class="switch-index" aria-hidden="true">03</span><span class="switch-label">CREATOR</span></button>
+        </div><p>06 KEYS / YOUR SHORTCUTS</p></div>
         <div class="config-layout">
           <div id="key-grid" class="key-grid" role="list" aria-label="Příklady akcí profilu MOBA"></div>
           <div class="profile-story" aria-live="polite" aria-atomic="true">
