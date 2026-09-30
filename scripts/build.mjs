@@ -1,9 +1,19 @@
-import { cp, mkdir, rm, readFile, writeFile } from 'node:fs/promises';
+import { cp, mkdir, rm, readFile, writeFile, readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 const root = new URL('../', import.meta.url);
 const output = new URL('dist/', root);
 const index = new URL('index.html', root);
 let html = await readFile(index, 'utf8');
+let css = await readFile(new URL('styles.css', root), 'utf8');
+const escape = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const images = (await readdir(new URL('assets/', root))).filter(name => name.endsWith('.svg')).map(name => `assets/${name}`);
+for (const asset of [...images, 'assets/fonts/InterVariable.woff2']) {
+  const hash = createHash('sha256').update(await readFile(new URL(asset, root))).digest('hex').slice(0, 12);
+  const pattern = new RegExp(`(["'])${escape(asset)}(?:\\?v=[^"']*)?\\1`, 'g');
+  html = html.replace(pattern, (_, quote) => `${quote}${asset}?v=${hash}${quote}`);
+  css = css.replace(pattern, (_, quote) => `${quote}${asset}?v=${hash}${quote}`);
+}
+await writeFile(new URL('styles.css', root), css);
 for (const asset of ['styles.css', 'app.js']) {
   const hash = createHash('sha256').update(await readFile(new URL(asset, root))).digest('hex').slice(0, 12);
   const pattern = new RegExp(`"${asset.replace('.', '\\.')}\\?(?:v=[^"]*)"|"${asset.replace('.', '\\.')}"`, 'g');

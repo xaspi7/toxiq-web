@@ -5,65 +5,109 @@
     moba: {
       kind: 'TEXTOVÁ MAKRA', title: 'CALL THE SHOTS.',
       description: 'Baron, drake nebo společný reset. Krátké calls po ruce, zatímco se soustředíš na hru.',
-      keys: [ ['BARON', 'BARON NOW'], ['DRAKE', 'DRAKE IN 30'], ['PUSH', 'PUSH MID'], ['BACK', 'RESET AND BACK'], ['PING', 'ON MY WAY'], ['GG', 'GG WP'] ]
+      note: 'Ukázkové přiřazení. Texty i zkratky si zvolíš podle sebe.',
+      keys: [['BARON', 'BARON NOW'], ['DRAKE', 'DRAKE IN 30'], ['PUSH', 'PUSH MID'], ['BACK', 'RESET AND BACK'], ['PING', 'ON MY WAY'], ['GG', 'GG WP']]
     },
     fps: {
-      kind: 'TEXTOVÁ MAKRA', title: 'INFO FIRST.',
-      description: 'Předat info o situaci. Zavolat rotaci. Domluvit další kolo. Míň psaní mezi jednotlivými akcemi.',
-      keys: [ ['A SITE', 'ENEMY A SITE'], ['B SITE', 'ENEMY B SITE'], ['ROTATE', 'ROTATE NOW'], ['HOLD', 'HOLD POSITION'], ['ECO', 'ECO NEXT ROUND'], ['GG', 'GG WP'] ]
+      kind: 'HRANÍ A ZÁZNAM', title: 'KEEP YOUR FOCUS.',
+      description: 'Ulož dobrý moment, ovládej záznam nebo mikrofon. Časté akce mají vlastní místo vedle klávesnice.',
+      note: 'Příklady klávesových zkratek. Konkrétní přiřazení závisí na nastavení hry a aplikací.',
+      keys: [['CLIP', 'Uložení herního klipu'], ['MIC', 'Zapnutí / ztlumení mikrofonu'], ['MAP', 'Otevření mapy'], ['SCORE', 'Přehled skóre'], ['RECORD', 'Spuštění / ukončení záznamu'], ['GG', 'GG WP']]
     },
     creator: {
-      kind: 'KLÁVESOVÉ ZKRATKY', title: 'MAKE MORE.',
-      description: 'Kopírovat, uložit nebo vrátit poslední změnu. Časté zkratky na jednom místě, bez hledání kombinací na klávesnici.',
-      keys: [ ['COPY', 'Ctrl+C'], ['PASTE', 'Ctrl+V'], ['UNDO', 'Ctrl+Z'], ['SAVE', 'Ctrl+S'], ['REDO', 'Ctrl+Shift+Z'], ['EXPORT', 'Ctrl+Shift+E'] ]
+      kind: 'STŘIH VIDEA', title: 'MAKE MORE.',
+      description: 'Rozdělit klip, přidat značku nebo spustit export. Nejčastější kroky tvého střihu na šesti klávesách.',
+      note: 'Ukázka pro střih videa. Zkratky si přiřadíš podle aplikace, kterou používáš.',
+      keys: [['CUT', 'Rozdělení klipu'], ['MARK', 'Značka na časové ose'], ['PLAY', 'Přehrát / pozastavit'], ['UNDO', 'Vrátit poslední změnu'], ['SAVE', 'Uložení projektu'], ['EXPORT', 'Export videa']]
     }
   };
-  let colorway = 'black';
-  try {
-    const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
-    if (['black', 'white'].includes(saved?.colorway)) colorway = saved.colorway;
-  } catch { /* Colorway selection still works when storage is unavailable. */ }
+  const html = document.documentElement;
+  const colorwayButtons = [...document.querySelectorAll('button[data-colorway]')];
+  const colorwayGroup = document.querySelector('.colorway-options');
+  const colorwayStatus = document.getElementById('colorway-status');
+  const readyImages = new WeakMap();
+  let colorwayRequest = 0;
+  let currentProfile = 'moba';
 
-  function setColorway(next) {
-    colorway = next;
-    document.documentElement.dataset.colorway = colorway;
-    document.querySelector('meta[name="theme-color"]').content = colorway === 'black' ? '#090A0C' : '#F4F4F0';
-    document.querySelectorAll('.brand-image').forEach(img => { img.src = `assets/wordmark-${colorway}.svg`; });
-    document.querySelector('.signature').src = colorway === 'black' ? 'assets/signature-q.svg' : 'assets/signature-q-white.svg';
-    const product = document.getElementById('product-image');
-    product.src = `assets/product-${colorway}.svg`;
-    product.alt = `Koncept ${colorway === 'black' ? 'černého' : 'bílého'} makropadu TOXIQ se šesti klávesami BARON, DRAKE, PUSH, BACK, PING a GG.`;
-    document.querySelectorAll('button[data-colorway]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.colorway === colorway)));
+  function readyImage(img) {
+    if (readyImages.has(img)) return readyImages.get(img);
+    const loaded = img.complete && img.naturalWidth > 0 ? Promise.resolve() : new Promise((resolve, reject) => {
+      const clean = () => { img.removeEventListener('load', onLoad); img.removeEventListener('error', onError); };
+      const onLoad = () => { clean(); resolve(); };
+      const onError = () => { clean(); reject(new Error('Image unavailable')); };
+      img.addEventListener('load', onLoad, { once: true });
+      img.addEventListener('error', onError, { once: true });
+      if (img.complete && img.naturalWidth === 0) img.src = img.getAttribute('src');
+    });
+    const ready = loaded.then(() => typeof img.decode === 'function' ? img.decode() : undefined).catch(error => {
+      readyImages.delete(img);
+      throw error;
+    });
+    readyImages.set(img, ready);
+    return ready;
   }
 
-  function setProfile(name) {
+  async function setColorway(next, persist = true) {
+    if (!['black', 'white'].includes(next)) return;
+    const request = ++colorwayRequest;
+    colorwayGroup.setAttribute('aria-busy', 'true');
+    colorwayStatus.textContent = '';
+    try {
+      await Promise.all([...document.querySelectorAll(`img[data-variant="${next}"]`)].map(readyImage));
+      if (request !== colorwayRequest) return;
+      // Keep both variants decoded in the DOM and commit the palette atomically.
+      // An older load can never overwrite the visitor's latest choice.
+      html.dataset.colorway = next;
+      document.querySelector('meta[name="theme-color"]').content = next === 'black' ? '#090A0C' : '#F4F4F0';
+      colorwayButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.colorway === next)));
+      document.querySelectorAll('img[data-variant]').forEach(img => img.setAttribute('aria-hidden', String(img.dataset.variant !== next)));
+      if (persist) {
+        try { localStorage.setItem(storageKey, JSON.stringify({ colorway: next })); } catch { /* Preference is optional. */ }
+      }
+    } catch {
+      if (request === colorwayRequest) colorwayStatus.textContent = 'Variantu se nepodařilo načíst. Zkus to znovu.';
+    } finally {
+      if (request === colorwayRequest) colorwayGroup.setAttribute('aria-busy', 'false');
+    }
+  }
+
+  function setProfile(name, announce = true) {
     const profile = profiles[name];
     if (!profile) return;
+    const changed = currentProfile !== name;
+    currentProfile = name;
     document.querySelectorAll('[data-profile]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.profile === name)));
     const grid = document.getElementById('key-grid');
     grid.setAttribute('aria-label', `Příklady akcí profilu ${name.toUpperCase()}`);
     grid.replaceChildren();
     profile.keys.forEach(([label, action], index) => {
-      const item = document.createElement('div'); item.className = 'key-example'; item.setAttribute('role', 'listitem');
+      const item = document.createElement('li');
       const number = document.createElement('span'); number.textContent = String(index + 1).padStart(2, '0');
       const title = document.createElement('strong'); title.textContent = label;
       const example = document.createElement('p'); example.textContent = action;
       item.append(number, title, example); grid.append(item);
+      document.querySelector(`[data-diagram-label="${index}"]`).textContent = label;
     });
+    document.getElementById('diagram-title').textContent = `Schéma profilu ${name.toUpperCase()}`;
+    document.getElementById('diagram-description').textContent = `Šest kláves: ${profile.keys.map(key => key[0]).join(', ')}.`;
     document.getElementById('profile-kind').textContent = profile.kind;
     document.getElementById('profile-title').textContent = profile.title;
     document.getElementById('profile-description').textContent = profile.description;
+    document.getElementById('profile-note').textContent = profile.note;
+    if (changed && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const content = document.getElementById('profile-content');
+      if (typeof content.animate === 'function') {
+        content.getAnimations().forEach(animation => animation.cancel());
+        content.animate([{ opacity: .65, transform: 'translateY(5px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 180, easing: 'ease-out' });
+      }
+    }
+    if (announce) document.getElementById('profile-status').textContent = `Zobrazen profil ${name.toUpperCase()}. ${profile.title}`;
   }
 
-  document.querySelectorAll('button[data-colorway]').forEach(button => button.addEventListener('click', () => {
-    setColorway(button.dataset.colorway);
-    try { localStorage.setItem(storageKey, JSON.stringify({ colorway })); } catch { /* Optional preference. */ }
-  }));
+  colorwayButtons.forEach(button => button.addEventListener('click', () => setColorway(button.dataset.colorway)));
   document.querySelectorAll('[data-profile]').forEach(button => button.addEventListener('click', () => setProfile(button.dataset.profile)));
-  document.querySelectorAll('[data-load-profile]').forEach(button => button.addEventListener('click', () => {
-    setProfile(button.dataset.loadProfile);
-    document.getElementById('makra').scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
-  }));
-  setColorway(colorway); setProfile('moba');
+  setColorway(html.dataset.colorway, false);
+  document.querySelectorAll('img[data-variant]').forEach(img => { readyImage(img).catch(() => {}); });
+  setProfile('moba', false);
   document.getElementById('year').textContent = String(new Date().getFullYear());
 })();

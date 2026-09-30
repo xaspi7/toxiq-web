@@ -1,4 +1,4 @@
-# TOXIQ — web concept v0.1
+# TOXIQ — produktový web
 
 První funkční koncept produktového webu TOXIQ podle schváleného Brand Manualu v0.2. Český obsah, anglické gamer headlines, editorial layout bez informačních kartiček, barevných pásů a generických šedých ploch.
 
@@ -18,7 +18,7 @@ npm run build
 npm run preview
 ```
 
-`dist/` obsahuje kompletní statický web připravený pro hosting, včetně GitHub Pages. CI build pouze ověří a připraví artifact; web automaticky veřejně nepublikuje.
+`dist/` obsahuje kompletní statický web připravený pro hosting. GitHub Pages publikuje hlavní větev `main`; CI navíc ověří syntax a připraví artifact. Build verzováním CSS, JS, obrázků a fontu zajistí obnovu cache po změnách.
 
 ## Co funguje
 
@@ -27,6 +27,9 @@ npm run preview
 - Přepínatelné MOBA, FPS a Creator profily se šesti příklady akcí; read-only produktová ukázka.
 - Zobrazené názvy kláves, textová makra a klávesové zkratky bez editoru nebo simulace stisku.
 - Volitelně uložená barevná preference, fallback při nedostupném úložišti.
+- Obě varianty obrázků zůstávají načtené v DOM. Přepnutí palety čeká na dekódování cílových obrázků a respektuje poslední volbu při rychlém přepínání.
+- Jedna sekce použití se schématem šesti kláves, nové příklady hraní a střihu, stručný postup používání.
+- Lokálně hostovaný variabilní font Inter s podporou češtiny; licence v `assets/fonts/OFL.txt`.
 - Ovládání klávesnicí, focus states, přístupné přepínače, reduced-motion a lokální assets bez trackerů.
 
 ## Struktura
@@ -36,7 +39,7 @@ npm run preview
 | `index.html` | Obsah a přístupná struktura webu |
 | `styles.css` | Brand tokens, editorial layout a responsive pravidla |
 | `app.js` | Barevné varianty a produktové příklady profilů |
-| `assets/` | Schválené SVG logo a produktové nákresy |
+| `assets/` | SVG logo, transparentní produktové nákresy a Inter |
 | `docs/` | Poznámky k ověření |
 | `scripts/` | Lokální server a statický build |
 | `AGENTS.md` | Závazná pravidla pro další úpravy |
@@ -54,4 +57,4 @@ Původní brand manuál a interní dokument s konceptem nejsou součástí veře
 3. Skutečný konfigurátor řešit samostatně podle skutečného USB/BLE protokolu.
 4. Cenu, nákup a hosting doplnit po potvrzení obchodní nabídky.
 
-Zdrojový kód a grafická identita jsou pracovní materiál TOXIQ. Zveřejnění repozitáře samo o sobě neuděluje licenci k dalšímu užití; licence nebyla udělena.
+Zdrojový kód a grafická identita jsou pracovní materiál TOXIQ. Zveřejnění repozitáře samo o sobě neuděluje licenci k dalšímu užití. Font Inter od Rasmuse Anderssona používá SIL Open Font License 1.1; původní licence je součástí repozitáře.
