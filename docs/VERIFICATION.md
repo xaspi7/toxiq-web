@@ -1,19 +1,29 @@
 # Ověření / 2026-09-30
 
-## Provedeno
+## Sestavení a soubory
 
-- `npm run check`: syntaxe aplikačního JS, lokálního serveru a buildu prošla.
-- `npm run build`: statický distribuční web se sestavil.
-- Všechny odkazy na lokální soubory a navigační anchors mají existující cíl. HTML nemá duplicitní ID.
-- Všechny SVG assets se validně parsují jako XML.
-- Návrh vychází ze schváleného Brand Manualu v0.2; originál a interní koncept nejsou součástí veřejné větve.
-- Samostatný HTML náhled obsahuje embedded SVG, CSS a JS včetně přepínání obou colorways.
-- Produktové příklady se vkládají pomocí `textContent`. Profily jsou read-only; původní editor, simulace stisku, export a reset jsou odstraněné. Ukládání barevné preference má fallback při nedostupném `localStorage`.
+- `npm run check` a `npm run build` prošly.
+- HTML nemá duplicitní ID; navigační anchors i odkazy na lokální assets mají existující cíl.
+- SVG se parsují jako XML a všechny jejich odkazy na definice mají cíl. Produktové SVG mají průhledné okolí a neobsahují exportní rámeček ani texty z manuálu.
+- Inter Variable je lokální WOFF2 s přiloženou licencí OFL. Build přidává hash obsahu do URL obrázků, fontu, CSS a JS.
+- Originál Brand Manualu, interní koncepty a pracovní screenshoty nejsou součástí veřejného repozitáře.
 
-## Zbývá
+## Živý web v prohlížeči
 
-Browser runtime nebyl dostupný; automatické stažení testovacího prohlížeče selhalo. Původní verze proto neměla dokončenou vizuální QA; nové produktové příklady jsou určené pro kontrolu přímo v publikovaném webu.
+Ověřeno na GitHub Pages při desktopovém viewportu přibližně 1363 × 936:
 
-Po zpřístupnění browser runtime ověřit viewporty 1440×1000, 768×1024 a 375×812 v obou colorways, žádný horizontální overflow, čitelnost při 200% zoomu, přepínání všech tří profilů, šest read-only příkladů, odkazy z Themes, obě colorways, keyboard navigation a error console.
+- Obě barevné varianty: všech pět viditelných obrázků odpovídá zvolené paletě a všechny párové obrázky se načetly.
+- Rychlé přepnutí White → Black → White zachová poslední volbu. Přepnutí čeká na načtení a dekódování cílových obrázků; nedochází k asynchronní výměně `src` na novém pozadí.
+- MOBA, FPS a Creator zobrazují šest akcí; popisky schématu a seznam příkladů se shodují. Aktivace profilu klávesou Enter funguje.
+- Produktová navigace vede do správné sekce. Profily jsou jen produktové příklady, bez editoru a simulace psaní.
+- Inter je v prohlížeči načtený. Desktop nemá horizontální overflow. Zachycené chyby konzole pocházely z browser extension, nikoli z aplikace.
 
-Repozitář `https://github.com/xaspi7/toxiq-web` založil Adam. GitHub přístup k němu je ověřen; úvodní projekt se ukládá do hlavní větve `main`. Automatická kontrola v `.github/workflows/check.yml` ověří syntax a vytvoří statický build, ale web veřejně nepublikuje.
+## Meze ověření
+
+CSS pro úzké obrazovky je zkontrolované: hlavní sekce přecházejí do jednoho sloupce, nadpisy a přepínače se zmenšují, obrázek detailu má ořez a při šířce do 380 px se ovládání barvy řadí pod popisek produktu. Vizuální kontrola skutečného mobilního viewportu a 200% zoomu ještě není dokončená; dostupný browser runtime neposkytuje nastavení velikosti viewportu.
+
+E-mailový kontakt čeká na konkrétní veřejnou adresu. Závěrečná výzva mezitím odkazuje na existující GitHub projektu; web neobsahuje nefunkční formulář.
+
+## Publikace
+
+Hlavní větev `main` spouští kontrolu webu a automatické nasazení na GitHub Pages. Aktuální produktové úpravy byly na živém webu ověřeny; stav konkrétního nasazení je dostupný v GitHub Actions.
