@@ -11,8 +11,8 @@ js = js.replace('img.src = `assets/wordmark-${colorway}.svg`', 'img.src = standa
   .replace("colorway === 'black' ? 'assets/signature-q.svg' : 'assets/signature-q-white.svg'", "standaloneAssets[colorway === 'black' ? 'assets/signature-q.svg' : 'assets/signature-q-white.svg']")
   .replace('product.src = `assets/product-${colorway}.svg`', 'product.src = standaloneAssets[`assets/product-${colorway}.svg`]');
 for (const [path, data] of Object.entries(assets)) html = html.replaceAll(`"${path}"`, `"${data}"`);
-html = html.replace('<link rel="stylesheet" href="styles.css">', `<style>${css}</style>`)
-  .replace('  <script src="app.js" defer></script>\n', '')
+html = html.replace(/<link rel="stylesheet" href="styles\.css(?:\?v=[^"]*)?">/, `<style>${css}</style>`)
+  .replace(/  <script src="app\.js(?:\?v=[^"]*)?" defer><\/script>\n/, '')
   .replace('</body>', `<script>const standaloneAssets = ${JSON.stringify(assets)};\n${js}</script>\n</body>`);
 await writeFile(new URL('../TOXIQ-preview.html', root), html);
 console.log('Created TOXIQ-preview.html with all assets embedded.');
