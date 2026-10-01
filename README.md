@@ -52,9 +52,9 @@ npm run preview
 | `AGENTS.md` | Závazná pravidla pro další úpravy |
 | `configurator/` | React/TypeScript konfigurátor a Electron shell |
 
-## TOXIQ Configurator v0.2
+## TOXIQ Configurator v0.3
 
-Samostatná pracovní aplikace podle stejné identity. Produktové profily na landing page zůstávají read-only; editor je na vlastní stránce.
+Desktopová pracovní aplikace podle TOXIQ identity, s vlastní kompozicí: profily vlevo, fyzické klávesy uprostřed a inspector vpravo. Produktové profily na landing page zůstávají read-only.
 
 - Šest interaktivních kláves v 3×2, MOBA/FPS/CREATOR/CUSTOM a KEY/HOTKEY/TEXT/MEDIA/MOUSE.
 - Záznam klávesových zkratek, editace názvů a textů, jas underglow.
@@ -64,8 +64,11 @@ Samostatná pracovní aplikace podle stejné identity. Produktové profily na la
 - Black/Lime a White/Violet se stejnými SVG logy, signature Q a lokálním Interem jako web.
 - Oddělené rozhraní `ToxiqDevice` a `MockDevice`. Demo připojení a ukládání jsou označeny jako demo; nic se neposílá do skutečného XIAO.
 - Electron shell používá sandbox a izolovaný renderer bez Node integration.
+- Tlačítka a pole mají funkční rámečky, vybraný profil a klávesa plnou brand barvu. Typy akcí mají ikony a popisky; demo připojení je skutečný přepínač.
+- Klávesy reagují pohybem na stisk. Výběr funguje i šipkami a Home/End; reduced motion animace vypne. Při zkoušení jiného typu akce si editor v rámci relace pamatuje jeho předchozí hodnotu.
+- Nativní okno začíná na 1240 × 820 px (minimum 940 × 640). Při 1240 × 780 jsou základní textové ovládací prvky i zápis dostupné bez scrollování; při menší výšce scrolluje inspector samostatně.
 
-V0 prototyp má dvě fyzická tlačítka; aplikace připravuje všech šest budoucích přiřazení. USB/BLE testovací firmware zatím nemá konfigurační protokol. Reálný přenos, flash storage, BLE konfigurace a instalátor nejsou součástí v0.2.
+V0 prototyp má dvě fyzická tlačítka; aplikace připravuje všech šest budoucích přiřazení. USB/BLE testovací firmware zatím nemá konfigurační protokol. Reálný přenos, flash storage, BLE konfigurace a instalátor nejsou součástí v0.3.
 
 ## Limity konceptu
 

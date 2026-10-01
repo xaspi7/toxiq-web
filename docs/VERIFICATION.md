@@ -1,5 +1,15 @@
 # Ověření / 2026-09-30
 
+## Konfigurátor v0.3 / desktopová kompozice / 2026-10-01
+
+- Nová app kompozice bez webových slogans nebo odkazů: profilový sidebar, grafický 3×2 pad a samostatný inspector. Funkční ikony, rámečky polí, plné aktivní stavy a přepínač demo zařízení. Zachovaná Black/Lime a White/Violet identita bez nových neutrálních výplní.
+- Chromium QA prošla při 1240 × 780 px. Kompletní základní textový editor se vejde do inspectoru bez vnitřního scrollování; tlačítko uložení je stále viditelné. Pět šířek 320–1440 px a 200% text na úzké obrazovce nemají horizontální overflow.
+- Ověřeny šipky v 3×2 mřížce a Home, shoda výběru s inspectorem, zachování textu při přepnutí typu akce a zrušení záznamu zkratky. Původní testy editace, ukládání, import/export, neplatného importu a obnovy draftu nadále prošly. Aplikace ani CSP nehlásí chyby konzole.
+- Vizuálně zkontrolovány oba desktopové vzhledy. Přepnutí palety mění výplně ihned; krátký pohyb klávesy, změna profilu a recording odezva respektují reduced motion.
+- HTML v0.3 náhled funguje samostatně přes `file://` se všemi assets. Electron minimum je 940 × 640; shell není v tomto prostředí nativně spuštěný. Reálný USB adapter stále čeká na firmware protokol.
+
+Následující záznamy popisují předchozí v0.2 a produktovou verzi.
+
 ## Konfigurátor v0.2 / 2026-10-01 / větev `work/configurator`
 
 - `npm run check`, `npm test` (6 testů) a `npm run build` prošly. Konfigurátor se sestavuje do `dist/configurator/`; produktová stránka zůstává samostatná a její příklady read-only.

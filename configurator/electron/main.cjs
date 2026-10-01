@@ -5,7 +5,7 @@ const entry = path.resolve(__dirname, '../dist/index.html');
 
 function createWindow() {
   const window = new BrowserWindow({
-    width: 1380, height: 960, minWidth: 480, minHeight: 640,
+    width: 1240, height: 820, minWidth: 940, minHeight: 640,
     backgroundColor: '#090A0C', title: 'TOXIQ Configurator',
     webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
   });
