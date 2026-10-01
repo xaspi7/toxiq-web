@@ -4,16 +4,23 @@ První funkční koncept produktového webu TOXIQ podle schváleného Brand Manu
 
 ## Spuštění
 
-Potřebuješ Node.js 22 nebo novější. Projekt nemá žádné externí závislosti.
+Potřebuješ Node.js 22.18 nebo novější. Produktová stránka zůstává bez závislostí; konfigurátor používá React, TypeScript a Vite.
 
 ```sh
+npm ci
+npm run build
 npm run dev
 ```
 
 Otevři `http://localhost:3000`. Web lze také otevřít přímo přes `index.html`; pro spolehlivé ukládání barevné preference doporučujeme lokální server.
 
+Konfigurátor otevři na `http://localhost:3000/configurator/`. Při vývoji aplikace použij `npm run dev:app` a adresu vypsanou Vite (obvykle `http://localhost:5173`). Pro desktopový Electron shell spusť `npm run desktop`. První `npm ci` stáhne i Electron runtime; nejde zatím o Windows instalátor.
+
+Po buildu vytvoří `npm run preview:file` samostatný offline náhled `qa/TOXIQ_Configurator_preview.html` se všemi SVG, fontem a skripty vloženými do jednoho souboru.
+
 ```sh
 npm run check
+npm test
 npm run build
 npm run preview
 ```
@@ -43,6 +50,22 @@ npm run preview
 | `docs/` | Poznámky k ověření |
 | `scripts/` | Lokální server a statický build |
 | `AGENTS.md` | Závazná pravidla pro další úpravy |
+| `configurator/` | React/TypeScript konfigurátor a Electron shell |
+
+## TOXIQ Configurator v0.2
+
+Samostatná pracovní aplikace podle stejné identity. Produktové profily na landing page zůstávají read-only; editor je na vlastní stránce.
+
+- Šest interaktivních kláves v 3×2, MOBA/FPS/CREATOR/CUSTOM a KEY/HOTKEY/TEXT/MEDIA/MOUSE.
+- Záznam klávesových zkratek, editace názvů a textů, jas underglow.
+- Lokální rozpracované nastavení přežije refresh. Při nedostupném úložišti aplikace doporučí export; poškozená původní data nepřepíše automaticky.
+- Import/export kompletní konfigurace v JSON, kontrola verze, počtu kláves a platných akcí. Neplatný import ponechá aktuální nastavení beze změny.
+- Převzetí nastavení uloženého předchozím v0.1 prototypem na stejném originu.
+- Black/Lime a White/Violet se stejnými SVG logy, signature Q a lokálním Interem jako web.
+- Oddělené rozhraní `ToxiqDevice` a `MockDevice`. Demo připojení a ukládání jsou označeny jako demo; nic se neposílá do skutečného XIAO.
+- Electron shell používá sandbox a izolovaný renderer bez Node integration.
+
+V0 prototyp má dvě fyzická tlačítka; aplikace připravuje všech šest budoucích přiřazení. USB/BLE testovací firmware zatím nemá konfigurační protokol. Reálný přenos, flash storage, BLE konfigurace a instalátor nejsou součástí v0.2.
 
 ## Limity konceptu
 
@@ -54,7 +77,7 @@ Původní brand manuál a interní dokument s konceptem nejsou součástí veře
 
 1. Posoudit webový koncept a upravit copy, kompozici a pořadí sekcí.
 2. Nahradit produktové nákresy fotografiemi nebo rendery skutečného prototypu.
-3. Skutečný konfigurátor řešit samostatně podle skutečného USB/BLE protokolu.
+3. Doplnit konfigurační protokol ve firmwaru a skutečný USB adapter pro konfigurátor.
 4. Cenu, nákup a hosting doplnit po potvrzení obchodní nabídky.
 
 Zdrojový kód a grafická identita jsou pracovní materiál TOXIQ. Zveřejnění repozitáře samo o sobě neuděluje licenci k dalšímu užití. Font Inter od Rasmuse Anderssona používá SIL Open Font License 1.1; původní licence je součástí repozitáře.

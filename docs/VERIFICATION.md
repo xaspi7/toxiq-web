@@ -1,5 +1,19 @@
 # Ověření / 2026-09-30
 
+## Konfigurátor v0.2 / 2026-10-01 / větev `work/configurator`
+
+- `npm run check`, `npm test` (6 testů) a `npm run build` prošly. Konfigurátor se sestavuje do `dist/configurator/`; produktová stránka zůstává samostatná a její příklady read-only.
+- Automatizovaná kontrola skutečného Chromium rendereru: editace názvu i hodnoty, všech pět typů akcí, záznam CTRL+SHIFT+M, přepnutí profilu bez ztráty změn, zachování draftu po reloadu.
+- Ověřen demo connect/disconnect, uložení snapshotu, zákaz uložení neplatné konfigurace, export souboru a zpětný import. Neplatný JSON/profil nepřepíše aktuální nastavení. Test odpojení a opětovného připojení během zápisu nedovolí falešně úspěšné uložení.
+- Black/Lime i White/Violet, stejné SVG logo a signature Q jako web, načtený lokální Inter. Bez chyb aplikace nebo CSP v konzoli.
+- Šířky 1440, 1024, 768, 390 a 320 px bez horizontálního overflow; stav demo zařízení zůstává viditelný. Při 200% textu na 390 px se profily zalomí a nic nepřetéká.
+- Vizuálně zkontrolován desktopový Black/Lime a mobilní White/Violet náhled. Produktové colorway/profile přepínače a odkaz na aplikaci fungují.
+- Samostatný HTML náhled byl otevřen přes `file://`, vykreslí všech šest kláves, logo i font bez externích assets.
+- Electron shell má syntaktickou kontrolu a používá renderer sandbox/context isolation. Nativní okno Electronu ani Windows instalátor v tomto prostředí nebyly ověřeny; desktopový runtime není v testovacím prostředí stažený.
+- USB/BLE hardware komunikace zůstává neimplementovaná. Firmware V0 posílá testovací texty a zatím neposkytuje konfigurační protokol.
+
+Změny této větve nejsou nasazené do veřejného webu. Níže uvedené záznamy se týkají předchozí produktové verze na `main`.
+
 ## Sestavení a soubory
 
 - `npm run check` a `npm run build` prošly.

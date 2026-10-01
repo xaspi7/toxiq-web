@@ -17,8 +17,10 @@ The source of truth is TOXIQ Brand Manual v0.2, approved by Adam. The original m
 
 - This is a concept. Do not invent shipping dates, production specs, battery life, confirmed pricing, checkout, or live hardware connectivity.
 - This is a product page. The profile section shows read-only MOBA/FPS/Creator examples; do not turn it into a macro editor or a simulated typing utility.
+- The separately requested configurator lives in `configurator/`: React + TypeScript and an Electron shell. Keep the product profile section read-only. The configurator can edit KEY/HOTKEY/TEXT/MEDIA/MOUSE actions, four profiles and brightness. Its device layer is explicitly a local mock until an actual configuration protocol exists in firmware. Never label it as a live USB connection or a successful hardware write.
 - Czech explanatory copy; English gamer headlines. Technical language stays clear and factual.
 - Keep it dependency-free unless a concrete feature justifies a dependency.
 - Preserve keyboard accessibility, visible focus, reduced-motion support and mobile layout.
 - Before delivery run `npm run check`, `npm run build`, and browser QA of colorways, profile examples and theme links. Check narrow screens for overflow.
+- For configurator changes also run `npm test` and verify editing, storage, import/export and mock connect/disconnect in the browser. Preserve local drafts if an import or device write fails.
 - Do not publish to a public website unless Adam requests it. GitHub repository creation and committing the concept are authorized by the initial request.
