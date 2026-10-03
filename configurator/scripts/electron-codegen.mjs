@@ -1,0 +1,11 @@
+import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { mkdir, rename } from 'node:fs/promises';
+const require = createRequire(import.meta.url);
+const compiler = join(dirname(require.resolve('typescript/package.json')), 'bin/tsc');
+const output = fileURLToPath(new URL('../electron/generated/', import.meta.url));
+await mkdir(output, { recursive: true });
+execFileSync(process.execPath, [compiler, fileURLToPath(new URL('../src/config.ts', import.meta.url)), '--ignoreConfig', '--module', 'commonjs', '--target', 'ES2022', '--skipLibCheck', '--outDir', output], { stdio: 'inherit' });
+await rename(join(output, 'config.js'), join(output, 'config.cjs'));

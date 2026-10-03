@@ -103,6 +103,11 @@ h2 { font-size: 1.125rem; font-weight: 650; letter-spacing: -.025em; line-height
 .action-types button[aria-pressed=true] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 .action-value { margin-top: 22px; }
 .character-count { font-size: .75rem; text-align: right; margin-top: 9px; opacity: .65; }
+.character-count span { display: block; text-align: left; margin-bottom: 8px; }
+.port-select { min-width: 0; width: 100%; background: var(--bg); border: 1px solid var(--edge); border-radius: 4px; padding: 8px; font-size: .75rem; }
+.macro-key[data-physical=false] { border-style: dashed; }
+.macro-key[data-physical=false] .key-face { opacity: .55; }
+.macro-key[data-hardware-pressed=true] .key-face { transform: translateY(4px); outline: 2px solid var(--accent); }
 .select-wrap { position: relative; }
 .select-wrap select { appearance: none; padding-right: 38px; }
 .select-wrap > .icon { position: absolute; top: 50%; right: 12px; transform: translateY(-50%); pointer-events: none; width: 16px; height: 16px; }

@@ -1,5 +1,8 @@
 dist/
 configurator/dist/
+configurator/electron/generated/
+configurator/release/
+firmware/build/
 node_modules/
 .DS_Store
 *.log

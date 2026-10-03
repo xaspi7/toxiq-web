@@ -4,8 +4,12 @@
   "private": true,
   "description": "TOXIQ brand website concept based on Brand Manual v0.2",
   "type": "module",
-  "workspaces": ["configurator"],
-  "engines": { "node": ">=22.18" },
+  "workspaces": [
+    "configurator"
+  ],
+  "engines": {
+    "node": ">=22.18"
+  },
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "preview": "node scripts/serve.mjs dist",
@@ -14,6 +18,7 @@
     "preview:file": "node configurator/scripts/standalone.mjs",
     "build": "npm run build --workspace configurator && node scripts/build.mjs",
     "check": "node --check app.js && node --check scripts/build.mjs && node --check scripts/serve.mjs && npm run check --workspace configurator",
-    "test": "npm run test --workspace configurator"
+    "test": "npm run test --workspace configurator",
+    "package:win": "npm run package:win --workspace configurator"
   }
 }
