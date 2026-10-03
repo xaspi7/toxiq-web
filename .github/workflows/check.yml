@@ -66,3 +66,26 @@ jobs:
           name: toxiq-firmware-0.4.0
           path: firmware/build/TOXIQ-V0-0.4.0-Firmware.zip
           if-no-files-found: error
+  release:
+    if: github.event_name == 'push' && startsWith(github.event.head_commit.message, 'release:')
+    needs: [build, windows, firmware]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: toxiq-windows-0.4.0
+          path: downloads
+      - uses: actions/download-artifact@v4
+        with:
+          name: toxiq-firmware-0.4.0
+          path: downloads
+      - name: Publish the verified V0 development build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd downloads
+          sha256sum TOXIQ-Configurator-0.4.0-Setup.exe TOXIQ-V0-0.4.0-Firmware.zip > SHA256SUMS.txt
+          gh release create v0.4.0 --prerelease --target "$GITHUB_SHA" --title "TOXIQ Configurator 0.4.0 · V0 USB preview" --notes-file ../docs/RELEASE-0.4.0.md TOXIQ-Configurator-0.4.0-Setup.exe TOXIQ-V0-0.4.0-Firmware.zip SHA256SUMS.txt

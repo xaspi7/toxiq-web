@@ -1,4 +1,16 @@
-# Ověření / 2026-09-30
+# Ověření / 2026-10-03
+
+## Konfigurátor v0.4 / USB a firmware
+
+- `npm run check`, `npm test` (13 testů) a `npm run build` prošly. USB testy ověřují handshake, čtení po zápisu, odmítnutí chybného readbacku, revizní konflikt, výpadek úložiště, odpojení a timeout, rozdělené UTF-8 rámce, tlačítkové události a limit velikosti. V testech firmware simuluje transport; nejsou to výsledky fyzického XIAO.
+- Skutečný nativní SerialPort binding na Linuxu prošel přes PTY handshake/zápisem/nezávislým readbackem vůči simulovanému firmwaru. Ověřuje transport; nedokazuje fyzické USB/BLE chování.
+- Firmware se zkompiloval pro `Seeeduino:nrf52:xiaonRF52840Plus` / core 1.1.13 s ArduinoJson 6.21.5, TinyUSB 1.7.0 a Bluefruit 0.21.0. Program 171620 B / 811008 B, globals 32796 B / 237568 B; další JSON dokumenty/flash používají runtime heap. C++ test ověřil validaci akcí, F13–F24/hotkey mapování a CRC32. UF2 kontrola potvrdila rodinu 0xADA52840, pouze aplikační adresy 0x27000–0xED000 a validní bloky.
+- GitHub Actions run [37135098196](https://github.com/xaspi7/toxiq-web/actions/runs/37135098196), commit `11cf39b`: web/testy, firmware a Windows job success. Windows job sestavil instalátor a spustil `win-unpacked/TOXIQ Configurator.exe --smoke-test`; ověřil šest kláves, USB režim rendereru, úzký preload/IPC bridge a nativní enumeraci portů. Certifikát pro podepisování zatím není nastavený.
+- Původní Chromium QA editoru v obou paletách prošla: všech pět akcí, capture, lokální ukládání, import/export, demo snapshot, šipky/Home/End, narrow layouts a 200% text. Výsledky nativního Windows spuštění a simulace protokolu jsou oddělené od fyzického testu.
+- Chromium QA USB režimu se simulovaným preload bridge ověřila zachování draftu při připojení, explicitní načtení se zálohou, editaci během načítání, zápis, tlačítkové události, odpojení, dvě fyzické pozice/čtyři budoucí a zakázané podsvícení. Sekce Downloady má správný kontrast obou palet a šířky 320/390/940 px bez overflow.
+- Potřebný fyzický test je v `firmware/README.md`: nahrát na Adamovo XIAO Plus, D0 text a D1 hotkey, flash po power cycle, KEY/MEDIA/MOUSE, opětovné párování BLE. XIAO připojené k Adamovu počítači není dostupné v tomto prostředí.
+
+Starší záznamy níže popisují tehdejší demo verze.
 
 ## Konfigurátor v0.3 / desktopová kompozice / 2026-10-01
 

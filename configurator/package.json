@@ -61,6 +61,12 @@
       "createStartMenuShortcut": true
     },
     "publish": null,
-    "npmRebuild": false
+    "npmRebuild": false,
+    "extraResources": [
+      {
+        "from": "../assets/fonts/OFL.txt",
+        "to": "licenses/Inter-OFL.txt"
+      }
+    ]
   }
 }

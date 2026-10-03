@@ -102,8 +102,9 @@ h2 { font-size: 1.125rem; font-weight: 650; letter-spacing: -.025em; line-height
 .action-types button:hover { border-color: var(--strong-edge); }
 .action-types button[aria-pressed=true] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 .action-value { margin-top: 22px; }
-.character-count { font-size: .75rem; text-align: right; margin-top: 9px; opacity: .65; }
-.character-count span { display: block; text-align: left; margin-bottom: 8px; }
+.character-count { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: .75rem; margin-top: 9px; opacity: .65; }
+.character-count .count { margin-left: auto; white-space: nowrap; }
+.lighting output { width: auto; min-width: 3ch; flex-shrink: 0; white-space: nowrap; }
 .port-select { min-width: 0; width: 100%; background: var(--bg); border: 1px solid var(--edge); border-radius: 4px; padding: 8px; font-size: .75rem; }
 .macro-key[data-physical=false] { border-style: dashed; }
 .macro-key[data-physical=false] .key-face { opacity: .55; }
