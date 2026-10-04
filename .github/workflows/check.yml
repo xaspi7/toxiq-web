@@ -1,7 +1,7 @@
-name: Validate website
+name: Build TOXIQ
 on:
   push:
-    branches: [main]
+    branches: [main, work/configurator]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -15,9 +15,86 @@ jobs:
         with:
           node-version: '22'
       - run: npm ci
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
       - run: npm run check
+      - run: npm test
       - run: npm run build
       - uses: actions/upload-artifact@v4
         with:
           name: toxiq-web
           path: dist/
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Export native Windows keyboard mappings
+        shell: pwsh
+        run: ./firmware/scripts/windows-layouts.ps1 -Verify firmware/layouts/windows.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: toxiq-keyboard-layouts
+          path: firmware/build/windows-layouts.json
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+      - run: npm run package:win
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Start packaged app and verify renderer, preload and serial driver
+        run: node configurator/scripts/smoke.mjs "configurator/release/win-unpacked/TOXIQ Configurator.exe"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: toxiq-windows-0.5.0
+          path: configurator/release/TOXIQ-Configurator-0.5.0-Setup.exe
+          if-no-files-found: error
+  firmware:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: arduino/setup-arduino-cli@v2
+        with:
+          version: '1.5.1'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install adafruit-nrfutil==0.5.3.post16 'setuptools<81'
+      - run: arduino-cli core update-index --additional-urls https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json
+      - run: arduino-cli core install Seeeduino:nrf52@1.1.13 --additional-urls https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json
+      - run: arduino-cli lib install ArduinoJson@6.21.5
+      - run: python firmware/scripts/test.py "$HOME/Arduino/libraries/ArduinoJson/src"
+      - run: python firmware/scripts/single_sketch.py
+      - run: arduino-cli compile --fqbn Seeeduino:nrf52:xiaonRF52840Plus --output-dir firmware/build firmware/build/TOXIQ_V0
+      - run: python firmware/scripts/package.py --core "$HOME/.arduino15/packages/Seeeduino/hardware/nrf52/1.1.13"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: toxiq-firmware-0.5.0
+          path: firmware/build/TOXIQ-V0-0.5.0-Firmware.zip
+          if-no-files-found: error
+  release:
+    if: github.event_name == 'push' && startsWith(github.event.head_commit.message, 'release:')
+    needs: [build, windows, firmware]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: toxiq-windows-0.5.0
+          path: downloads
+      - uses: actions/download-artifact@v4
+        with:
+          name: toxiq-firmware-0.5.0
+          path: downloads
+      - name: Publish the verified V0 development build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd downloads
+          python ../firmware/scripts/single_sketch.py --output TOXIQ_V0.ino
+          sha256sum TOXIQ-Configurator-0.5.0-Setup.exe TOXIQ-V0-0.5.0-Firmware.zip TOXIQ_V0.ino > SHA256SUMS.txt
+          gh release create v0.5.0 --prerelease --target "$GITHUB_SHA" --title "TOXIQ Configurator 0.5.0 · V0 USB preview" --notes-file ../docs/RELEASE-0.5.0.md TOXIQ_V0.ino TOXIQ-Configurator-0.5.0-Setup.exe TOXIQ-V0-0.5.0-Firmware.zip SHA256SUMS.txt
