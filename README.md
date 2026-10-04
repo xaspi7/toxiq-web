@@ -69,7 +69,7 @@ Windows desktopová aplikace se skutečným USB CDC spojením a odpovídajícím
 
 ### Downloady a první spuštění
 
-[Build 0.5.0](https://github.com/xaspi7/toxiq-web/releases/tag/v0.5.0) obsahuje Windows instalátor, firmware ZIP s UF2 a jediným `.ino`, samostatný `.ino` a kontrolní součty. Instalátor zatím není podepsaný. Sekce Downloady v produktové stránce odkazuje na tyto skutečné soubory; web se zveřejňuje z `main` po ověření a vydání souborů.
+[Build 0.5.0](https://github.com/xaspi7/toxiq-web/releases/tag/v0.5.0) obsahuje Windows instalátor, firmware ZIP s UF2 a jediným `.ino`, samostatný `.ino` a kontrolní součty. Instalátor zatím není podepsaný. Veřejná produktová stránka nabízí pouze stažení Configuratoru se stručným označením zkušební verze. Firmware, Arduino sketch a postup oživení prototypu zůstávají v dokumentaci a GitHub release; web se zveřejňuje z `main` po ověření.
 
 Nejdřív nahraj odpovídající firmware; starý USB/BLE testovací sketch nemá tento protokol. [Postup nahrání a fyzického ověření](firmware/README.md) popisuje board/core, D0/D1, kopírování UF2 a test maker i restartu. Fyzický test na Adamově V0 nelze nahradit CI a je stále potřeba dokončit na zařízení.
 
