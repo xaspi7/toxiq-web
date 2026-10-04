@@ -31,6 +31,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Export native Windows keyboard mappings
+        shell: pwsh
+        run: ./firmware/scripts/windows-layouts.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: toxiq-keyboard-layouts
+          path: firmware/build/windows-layouts.json
       - run: npm ci
       - run: npm run check
       - run: npm test
