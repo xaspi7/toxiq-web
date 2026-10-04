@@ -1,14 +1,14 @@
 <!doctype html>
-<html lang="en" data-colorway="black" data-page="home">
+<html lang="en" data-colorway="black" data-page="pad">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Six programmable keys for your messages and shortcuts. Meet the TOXIQ pad.">
+  <meta name="description" content="Six mechanical keys for game calls, shortcuts and editing. Pick a profile and make it yours.">
   <meta name="theme-color" content="#090A0C">
-  <meta property="og:title" content="TOXIQ — GG. GO NEXT.">
-  <meta property="og:description" content="Six programmable keys for your messages and shortcuts. Meet the TOXIQ pad.">
+  <meta property="og:title" content="TOXIQ Pad — Six keys. Your call.">
+  <meta property="og:description" content="Six mechanical keys for game calls, shortcuts and editing. Pick a profile and make it yours.">
   <meta property="og:type" content="website">
-  <title>TOXIQ — GG. GO NEXT.</title>
+  <title>TOXIQ Pad — Six keys. Your call.</title>
   <script>try{const c=JSON.parse(localStorage.getItem('toxiq.concept.v1')||'null')?.colorway;if(c==='white'){document.documentElement.dataset.colorway=c;document.querySelector('meta[name="theme-color"]').content='#F4F4F0';}if(localStorage.getItem('toxiq-language')==='cs')document.documentElement.lang='cs';}catch{}</script>
   <link rel="icon" type="image/svg+xml" href="assets/signature-q.svg?v=e16ea2b237f4">
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/InterVariable.woff2?v=693b77d4f32e" crossorigin>
@@ -20,7 +20,7 @@
   <header class="site-header wrap">
     <a class="brand" href="./" aria-label="TOXIQ — home" data-en-aria-label="TOXIQ — home" data-cs-aria-label="TOXIQ — úvod"><span class="asset-pair wordmark"><img data-variant="black" src="assets/wordmark-black.svg?v=d3a447758e98" alt="TOXIQ" width="338" height="135"><img data-variant="white" src="assets/wordmark-white.svg?v=54386853d3ea" alt="TOXIQ" width="338" height="135" aria-hidden="true"></span></a>
     <nav class="main-nav" aria-label="Main navigation" data-en-aria-label="Main navigation" data-cs-aria-label="Hlavní navigace">
-      <a href="pad.html">Pad</a><a href="app.html"><span data-en="App" data-cs="Apka">App</span></a>
+      <a href="pad.html" aria-current="page">Pad</a><a href="app.html"><span data-en="App" data-cs="Apka">App</span></a>
     </nav>
     <div class="header-tools">
       <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch to light mode" data-en-aria-label="Switch to light mode" data-cs-aria-label="Přepnout na světlý režim">
@@ -31,11 +31,14 @@
     </div>
   </header>
   <main id="main">
-    <section class="home-hero wrap" aria-labelledby="hero-heading">
+    <section class="pad-hero wrap" aria-labelledby="pad-heading">
       <div class="hero-copy">
-        <h1 id="hero-heading">GG.<br><span class="accent">GO NEXT.</span></h1>
-        <p class="hero-description" data-en="Six programmable keys for your messages and shortcuts." data-cs="Šest programovatelných kláves pro tvoje zprávy a zkratky.">Six programmable keys for your messages and shortcuts.</p>
-        <div class="hero-actions"><a class="button button-primary" href="pad.html"><span data-en="Explore the pad" data-cs="Prohlédnout pad">Explore the pad</span><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a><a class="button button-secondary" href="app.html"><span data-en="Get the app" data-cs="Stáhnout apku">Get the app</span><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 3v13m-5-5 5 5 5-5M5 18v3h14v-3"/></svg></a></div>
+        <p class="eyebrow" data-en="The pad" data-cs="Pad">The pad</p>
+        <h1 id="pad-heading"><span data-en="Six keys." data-cs="Šest kláves.">Six keys.</span><br><span class="accent"><span data-en="Your call." data-cs="Tvoje hra.">Your call.</span></span></h1>
+        <p class="hero-description" data-en="Your most-used actions. Right beside your keyboard." data-cs="Nejčastější akce. Hned vedle tvé klávesnice.">Your most-used actions. Right beside your keyboard.</p>
+        <dl class="pad-facts"><div><dt>06</dt><dd><span data-en="Mechanical keys" data-cs="Mechanických kláves">Mechanical keys</span></dd></div><div><dt>3 × 2</dt><dd><span data-en="Compact layout" data-cs="Kompaktní rozložení">Compact layout</span></dd></div></dl>
+        <a class="text-action" href="#profiles"><span data-en="Find your setup" data-cs="Najdi si svoje přiřazení">Find your setup</span><span aria-hidden="true">↓</span></a>
+        <p class="development-note" data-en="Hardware in development." data-cs="Hardware je ve vývoji.">Hardware in development.</p>
       </div>
       <div class="hero-product"><div class="product-stage" data-motion>
           <span class="signature-field" aria-hidden="true"></span>
@@ -47,6 +50,16 @@
           <button type="button" data-colorway="black" aria-pressed="true"><span class="colour-dot dot-black" aria-hidden="true"></span><span data-en="Black" data-cs="Černá">Black</span></button>
           <button type="button" data-colorway="white" aria-pressed="false"><span class="colour-dot dot-white" aria-hidden="true"></span><span data-en="White" data-cs="Bílá">White</span></button>
         </div></div>
+    </section>
+    <section id="profiles" class="profiles-section wrap" aria-labelledby="profile-heading">
+      <div class="profile-heading"><h2 id="profile-heading"><span data-en="Your keys." data-cs="Tvoje klávesy.">Your keys.</span><br><span class="accent"><span data-en="Your pace." data-cs="Tvoje tempo.">Your pace.</span></span></h2>
+        <div class="profile-options" role="group" aria-label="Example profiles" data-en-aria-label="Example profiles" data-cs-aria-label="Ukázkové profily">
+          <button type="button" data-profile="moba" aria-pressed="true">MOBA</button><button type="button" data-profile="fps" aria-pressed="false">FPS</button><button type="button" data-profile="creator" aria-pressed="false">CREATOR</button>
+        </div>
+      </div>
+      <div class="profile-content" id="profile-content"><ol id="key-grid" class="physical-pad" aria-label="MOBA action examples"><li class="physical-key"><span class="key-number" aria-hidden="true">01</span><strong>BARON</strong><span class="key-action">BARON NOW</span></li><li class="physical-key"><span class="key-number" aria-hidden="true">02</span><strong>DRAKE</strong><span class="key-action">DRAKE IN 30</span></li><li class="physical-key"><span class="key-number" aria-hidden="true">03</span><strong>PUSH</strong><span class="key-action">PUSH MID</span></li><li class="physical-key"><span class="key-number" aria-hidden="true">04</span><strong>BACK</strong><span class="key-action">RESET AND BACK</span></li><li class="physical-key"><span class="key-number" aria-hidden="true">05</span><strong>PING</strong><span class="key-action">ON MY WAY</span></li><li class="physical-key"><span class="key-number" aria-hidden="true">06</span><strong>GG</strong><span class="key-action">GG WP</span></li></ol></div>
+      <div class="profile-bottom"><p class="profile-note" data-en="Example mappings. Every key is yours to set." data-cs="Ukázkové přiřazení. Každou klávesu si nastavíš po svém.">Example mappings. Every key is yours to set.</p><a class="text-action" href="app.html"><span data-en="Make it yours" data-cs="Nastav si svůj pad">Make it yours</span><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a></div>
+      <p id="profile-status" class="sr-only" role="status"></p>
     </section>
   </main>
   <footer class="site-footer wrap"><p>© <span id="year">2026</span> TOXIQ</p><a href="app.html"><span data-en="Get the app" data-cs="Stáhnout apku">Get the app</span><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a></footer>

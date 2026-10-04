@@ -25,7 +25,9 @@ npm run build
 npm run preview
 ```
 
-`dist/` obsahuje kompletní statický web připravený pro hosting. GitHub Pages publikuje hlavní větev `main`; CI navíc ověří syntax a připraví artifact. Build verzováním CSS, JS, obrázků a fontu zajistí obnovu cache po změnách.
+`dist/` obsahuje kompletní statický web připravený pro hosting: hlavní stránku, `pad.html` a `app.html`. Stránky sdílí navigaci a uložené nastavení EN/CZ a Black/White. Build verzováním CSS, JS, obrázků a fontu zajistí obnovu cache po změnách na všech třech stránkách.
+
+Workflow `Publish TOXIQ` sestaví a zveřejní hlavní větev `main`. Do publikačního artifactu přidá vydaný Windows instalátor, ověří jeho SHA-256 a zpřístupní jej přímo pod `downloads/`; instalátor se neukládá do gitu. Veřejný web neodkazuje na repozitář ani na release stránku. Pokud je stále zapnuté automatické publikování zdrojové větve, workflow počká na jeho dokončení a pak nasadí kompletní artifact. Firmware a Arduino soubory se do veřejné složky downloads nekopírují.
 
 ## Co funguje
 

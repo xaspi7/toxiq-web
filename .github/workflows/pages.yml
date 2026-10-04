@@ -1,0 +1,81 @@
+name: Publish TOXIQ
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '*.html'
+      - '*.css'
+      - 'app.js'
+      - 'assets/**'
+      - 'scripts/**'
+      - 'configurator/**'
+      - 'package*.json'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: toxiq-site
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+      - name: Check and build the site
+        run: |
+          npm run check
+          npm run build
+      - name: Add the verified Windows installer
+        run: |
+          curl --fail --location --retry 3 \
+            'https://github.com/xaspi7/toxiq-web/releases/download/v0.5.0/TOXIQ-Configurator-0.5.0-Setup.exe' \
+            --output dist/downloads/TOXIQ-Configurator-0.5.0-Setup.exe
+          cd dist/downloads
+          printf '%s\n' '3b0b814fc490e6cb4c3f3ead29051598992f37638fe39df8ea87d909ee4fe60a  TOXIQ-Configurator-0.5.0-Setup.exe' | sha256sum --check
+      - name: Finish after the automatic source-branch publication
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // The existing site also publishes main automatically. Deploy the
+            // complete artifact last so the installer is never replaced by that build.
+            const site = await github.request('GET /repos/{owner}/{repo}/pages', context.repo);
+            if (site.data.build_type !== 'legacy') return;
+            for (let attempt = 0; attempt < 24; attempt++) {
+              const { data } = await github.rest.actions.listWorkflowRunsForRepo({
+                ...context.repo, branch: 'main', per_page: 30
+              });
+              const sourceRun = data.workflow_runs.find(run =>
+                run.head_sha === context.sha && run.name === 'pages build and deployment');
+              if (sourceRun?.status === 'completed') {
+                core.info('Automatic source-branch publication has finished.');
+                return;
+              }
+              await new Promise(resolve => setTimeout(resolve, 10000));
+            }
+            throw new Error('Automatic source-branch publication has not finished; retry this workflow.');
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+      - name: Publish the complete site
+        id: deployment
+        uses: actions/deploy-pages@v4
