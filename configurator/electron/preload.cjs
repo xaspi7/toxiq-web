@@ -5,6 +5,9 @@ const invoke = async (method, ...args) => {
   return result.value;
 };
 contextBridge.exposeInMainWorld('toxiq', Object.freeze({
+  platform: process.platform,
+  keyboardLayout: () => invoke('keyboardLayout'),
+  setTheme: theme => invoke('setTheme', theme),
   list: () => invoke('list'),
   connect: path => invoke('connect', path),
   disconnect: () => invoke('disconnect'),

@@ -11,8 +11,8 @@ class UsbController extends EventEmitter {
     return (await SerialPort.list()).filter(isCandidate).map(port => ({ path: port.path, label: `${port.path} · ${port.serialNumber || 'XIAO nRF52840'}` }));
   }
   async connect(path) {
-    if (this.busy || this.session) throw new Error('Nejdřív ukonči současné USB spojení.');
-    if (typeof path !== 'string' || !(await this.list()).some(port => port.path === path)) throw new Error('Vyber připojené XIAO nRF52840.');
+    if (this.busy || this.session) throw new Error('device_busy');
+    if (typeof path !== 'string' || !(await this.list()).some(port => port.path === path)) throw new Error('no_device');
     this.busy = true;
     const port = new SerialPort({ path, baudRate: 115200, autoOpen: false, lock: true });
     const session = new ProtocolSession(port);
@@ -20,14 +20,14 @@ class UsbController extends EventEmitter {
     session.on('button', event => this.emit('event', { type: 'button', ...event }));
     session.on('disconnected', message => { if (this.session === session) { this.session = null; this.emit('event', { type: 'disconnected', message }); } });
     try {
-      await new Promise((resolve, reject) => port.open(error => error ? reject(new Error('Port nelze otevřít. Zavři Arduino Serial Monitor a zkus to znovu.')) : resolve()));
-      await new Promise((resolve, reject) => port.set({ dtr: true, rts: false }, error => error ? reject(new Error('USB port není připravený.')) : resolve()));
+      await new Promise((resolve, reject) => port.open(error => error ? reject(new Error('usb_failed')) : resolve()));
+      await new Promise((resolve, reject) => port.set({ dtr: true, rts: false }, error => error ? reject(new Error('usb_failed')) : resolve()));
       return await session.connect();
     } catch (error) { session.close(); throw error; }
     finally { this.busy = false; }
   }
   disconnect() { this.session?.close(); }
-  async read() { if (!this.session) throw new Error('Nejdřív připoj USB zařízení.'); return this.session.read(); }
-  async save(config) { if (!this.session) throw new Error('Nejdřív připoj USB zařízení.'); return this.session.save(config); }
+  async read() { if (!this.session) throw new Error('connect_first'); return this.session.read(); }
+  async save(config) { if (!this.session) throw new Error('connect_first'); return this.session.save(config); }
 }
 module.exports = { UsbController, isCandidate };

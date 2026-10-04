@@ -1,6 +1,6 @@
 # TOXIQ — produktový web
 
-První funkční koncept produktového webu TOXIQ podle schváleného Brand Manualu v0.2. Český obsah, anglické gamer headlines, editorial layout bez informačních kartiček, barevných pásů a generických šedých ploch.
+První funkční koncept produktového webu TOXIQ podle schváleného Brand Manualu v0.2. Angličtina jako výchozí jazyk s přepnutím EN/CZ, anglické gamer headlines, editorial layout bez informačních kartiček, barevných pásů a generických šedých ploch.
 
 ## Spuštění
 
@@ -53,7 +53,7 @@ npm run preview
 | `configurator/` | React/TypeScript konfigurátor, Electron shell a USB CDC adapter |
 | `firmware/` | Arduino firmware, USB protokol a postup ověření V0 |
 
-## TOXIQ Configurator v0.4
+## TOXIQ Configurator v0.5
 
 Windows desktopová aplikace se skutečným USB CDC spojením a odpovídajícím firmwarem pro XIAO nRF52840 Plus V0. Zachovaná desktopová kompozice: profily vlevo, 3×2 klávesy uprostřed, inspector a ukládání vpravo. Web na `/configurator/` nabízí jasně označené demo; USB je dostupné v desktopové aplikaci.
 
@@ -69,7 +69,7 @@ Windows desktopová aplikace se skutečným USB CDC spojením a odpovídajícím
 
 ### Downloady a první spuštění
 
-[Build 0.4.0](https://github.com/xaspi7/toxiq-web/releases/tag/v0.4.0) obsahuje Windows instalátor, firmware ZIP s UF2 i zdroji a kontrolní součty. Instalátor zatím není podepsaný. Sekce Downloady v produktové stránce odkazuje na tyto skutečné soubory; změny webu jsou stále ve větvi `work/configurator`.
+[Build 0.5.0](https://github.com/xaspi7/toxiq-web/releases/tag/v0.5.0) obsahuje Windows instalátor, firmware ZIP s UF2 a jediným `.ino`, samostatný `.ino` a kontrolní součty. Instalátor zatím není podepsaný. Sekce Downloady v produktové stránce odkazuje na tyto skutečné soubory; web se zveřejňuje z `main` po ověření a vydání souborů.
 
 Nejdřív nahraj odpovídající firmware; starý USB/BLE testovací sketch nemá tento protokol. [Postup nahrání a fyzického ověření](firmware/README.md) popisuje board/core, D0/D1, kopírování UF2 a test maker i restartu. Fyzický test na Adamově V0 nelze nahradit CI a je stále potřeba dokončit na zařízení.
 
@@ -89,3 +89,7 @@ Produktová stránka nemá objednávky ani platby. Desktopový konfigurátor kom
 4. Cenu, nákup a hosting doplnit po potvrzení obchodní nabídky.
 
 Zdrojový kód a grafická identita jsou pracovní materiál TOXIQ. Zveřejnění repozitáře samo o sobě neuděluje licenci k dalšímu užití. Font Inter od Rasmuse Anderssona používá SIL Open Font License 1.1; původní licence je součástí repozitáře.
+
+## Configurator 0.5
+
+Integrated Windows title bar with native window controls. A compact pad editor, profile tabs, a single action selector and an overflow menu for import/export and device reads. EN/CZ and appearance preferences persist independently of profiles. Windows Czech QWERTZ/QWERTY text is encoded in firmware, including accents, Y/Z, numbers and punctuation; mappings were derived and verified using native Windows APIs. Config schema 2 stores the selected typing layout and migrates version 1 imports and flash profiles safely. A connected device needs firmware 0.5.

@@ -1,5 +1,6 @@
 #pragma once
 #include <ArduinoJson.h>
+#include "TextLayout.h"
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
@@ -61,9 +62,11 @@ inline bool stringValid(JsonVariantConst value, size_t maxUnits, bool ascii = fa
   return nonWhitespace && units <= maxUnits;
 }
 inline bool validConfig(JsonVariantConst config) {
-  if (!config.is<JsonObjectConst>() || !config["version"].is<int>() || config["version"].as<int>() != 1 ||
+  if (!config.is<JsonObjectConst>() || !config["version"].is<int>() || (config["version"].as<int>() != 1 && config["version"].as<int>() != 2) ||
       !config["brightness"].is<int>() || config["brightness"].as<int>() < 0 || config["brightness"].as<int>() > 100 ||
       measureJson(config) > MAX_CONFIG_BYTES) return false;
+  const char* layout = config["textLayout"] | "US";
+  if (config["version"].as<int>() == 2 && (!config["textLayout"].is<const char*>() || !validTextLayout(layout))) return false;
   const char* active = config["activeProfile"] | ""; bool found = false;
   for (const char* id : PROFILE_IDS) if (!strcmp(active,id)) found = true;
   if (!found) return false;
@@ -75,7 +78,7 @@ inline bool validConfig(JsonVariantConst config) {
       const char* type = action["type"]; const char* value = action["value"];
       if (!stringValid(action["value"],240)) return false;
       uint8_t modifier, usage;
-      if (!strcmp(type,"text")) { if (!stringValid(action["value"],240,true)) return false; }
+      if (!strcmp(type,"text")) { if (!textSupported(value,textLayoutId(layout))) return false; }
       else if (!strcmp(type,"key")) { if (!keyUsage(value)) return false; }
       else if (!strcmp(type,"hotkey")) { if (!hotkeyUsage(value,modifier,usage)) return false; }
       else if (!strcmp(type,"media")) { if (!mediaUsage(value)) return false; }

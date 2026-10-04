@@ -8,19 +8,19 @@ test('import only accepts complete, valid six-key profiles', () => {
   assert.deepEqual(parseConfig(good), good);
   const wrongCount = structuredClone(good);
   wrongCount.profiles.moba.keys.pop();
-  assert.throws(() => parseConfig(wrongCount), /šest kláves/);
+  assert.throws(() => parseConfig(wrongCount), /profile_invalid/);
   const badAction = structuredClone(good);
   badAction.profiles.fps.keys[0].value = 'CTRL+CTRL+M';
-  assert.throws(() => parseConfig(badAction), /zkratku/);
+  assert.throws(() => parseConfig(badAction), /hotkey_invalid/);
   const future = { ...good, version: 99 };
-  assert.throws(() => parseConfig(future), /verze 1/);
-  assert.throws(() => parseConfig({ ...good, brightness: 101 }), /Jas/);
+  assert.throws(() => parseConfig(future), /config_version/);
+  assert.throws(() => parseConfig({ ...good, brightness: 101 }), /brightness_invalid/);
 });
 
 test('recover an unfinished draft without allowing it as an imported profile', () => {
   const draft = makeDefaultConfig();
   draft.profiles.moba.keys[0].value = '';
-  assert.throws(() => parseConfig(draft), /Doplň text/);
+  assert.throws(() => parseConfig(draft), /text_required/);
   assert.equal(parseConfig(draft, { allowDraft: true }).profiles.moba.keys[0].value, '');
 });
 
@@ -31,7 +31,7 @@ test('v0.1 migration preserves user mappings and brightness', () => {
   const migrated = parseConfig(legacy, { legacy: true });
   assert.equal(migrated.brightness, 73);
   assert.equal(migrated.profiles.moba.keys[0].value, 'MY ORIGINAL CALL');
-  assert.equal(migrated.version, 1);
+  assert.equal(migrated.version, 2);
 });
 
 test('keyboard capture uses physical code, including Czech layout digit keys', () => {
@@ -56,6 +56,6 @@ test('disconnect and reconnect during a write cannot report success', async () =
   const saving = device.saveConfig(makeDefaultConfig());
   device.disconnect();
   await device.connect();
-  await assert.rejects(saving, /odpojilo/);
+  await assert.rejects(saving, /demo_disconnected/);
   assert.equal(device.getSavedConfig(), null);
 });

@@ -1,7 +1,7 @@
 'use strict';
 (() => {
   const storageKey = 'toxiq.concept.v1';
-  const profiles = {
+  const profilesCs = {
     moba: {
       kind: 'TEXTOVÁ MAKRA', title: 'CALL THE SHOTS.',
       description: 'Baron, drake nebo společný reset. Krátké calls po ruce, zatímco se soustředíš na hru.',
@@ -21,6 +21,8 @@
       keys: [['CUT', 'Rozdělení klipu'], ['MARK', 'Značka na časové ose'], ['PLAY', 'Přehrát / pozastavit'], ['UNDO', 'Vrátit poslední změnu'], ['SAVE', 'Uložení projektu'], ['EXPORT', 'Export videa']]
     }
   };
+  const profiles = {"moba":{"kind":"TEXT MACROS","title":"CALL THE SHOTS.","description":"Baron, drake or a team reset. Quick calls at hand, so you can focus on the game.","note":"Example mappings. Choose your own messages and shortcuts.","keys":[["BARON","BARON NOW"],["DRAKE","DRAKE IN 30"],["PUSH","PUSH MID"],["BACK","RESET AND BACK"],["PING","ON MY WAY"],["GG","GG WP"]]},"fps":{"kind":"PLAY AND RECORD","title":"KEEP YOUR FOCUS.","description":"Save a great moment, control recording or mute your mic. Keep frequent actions next to your keyboard.","note":"Example shortcuts. Your mappings depend on your game and app settings.","keys":[["CLIP","Save a game clip"],["MIC","Toggle microphone"],["MAP","Open map"],["SCORE","Show scoreboard"],["RECORD","Start / stop recording"],["GG","GG WP"]]},"creator":{"kind":"VIDEO EDITING","title":"MAKE MORE.","description":"Split a clip, add a marker or start an export. Your most-used editing steps on six keys.","note":"An editing example. Choose shortcuts for the app you use.","keys":[["CUT","Split clip"],["MARK","Timeline marker"],["PLAY","Play / pause"],["UNDO","Undo last change"],["SAVE","Save project"],["EXPORT","Export video"]]}};
+  let language = "en";
   const html = document.documentElement;
   const colorwayButtons = [...document.querySelectorAll('button[data-colorway]')];
   const colorwayGroup = document.querySelector('.colorway-options');
@@ -65,20 +67,20 @@
         try { localStorage.setItem(storageKey, JSON.stringify({ colorway: next })); } catch { /* Preference is optional. */ }
       }
     } catch {
-      if (request === colorwayRequest) colorwayStatus.textContent = 'Variantu se nepodařilo načíst. Zkus to znovu.';
+      if (request === colorwayRequest) colorwayStatus.textContent = language === 'cs' ? 'Variantu se nepodařilo načíst. Zkus to znovu.' : 'Could not load this colourway. Try again.';
     } finally {
       if (request === colorwayRequest) colorwayGroup.setAttribute('aria-busy', 'false');
     }
   }
 
   function setProfile(name, announce = true) {
-    const profile = profiles[name];
+    const profile = (language === "cs" ? profilesCs : profiles)[name];
     if (!profile) return;
     const changed = currentProfile !== name;
     currentProfile = name;
     document.querySelectorAll('[data-profile]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.profile === name)));
     const grid = document.getElementById('key-grid');
-    grid.setAttribute('aria-label', `Příklady akcí profilu ${name.toUpperCase()}`);
+    grid.setAttribute('aria-label', `${language === 'cs' ? 'Příklady akcí profilu' : 'Action examples for'} ${name.toUpperCase()}`);
     grid.replaceChildren();
     profile.keys.forEach(([label, action], index) => {
       const item = document.createElement('li');
@@ -88,8 +90,8 @@
       item.append(number, title, example); grid.append(item);
       document.querySelector(`[data-diagram-label="${index}"]`).textContent = label;
     });
-    document.getElementById('diagram-title').textContent = `Schéma profilu ${name.toUpperCase()}`;
-    document.getElementById('diagram-description').textContent = `Šest kláves: ${profile.keys.map(key => key[0]).join(', ')}.`;
+    document.getElementById('diagram-title').textContent = `${language === 'cs' ? 'Schéma profilu' : 'Profile layout for'} ${name.toUpperCase()}`;
+    document.getElementById('diagram-description').textContent = `${language === 'cs' ? 'Šest kláves' : 'Six keys'}: ${profile.keys.map(key => key[0]).join(', ')}.`;
     document.getElementById('profile-kind').textContent = profile.kind;
     document.getElementById('profile-title').textContent = profile.title;
     document.getElementById('profile-description').textContent = profile.description;
@@ -101,8 +103,22 @@
         content.animate([{ opacity: .65, transform: 'translateY(5px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 180, easing: 'ease-out' });
       }
     }
-    if (announce) document.getElementById('profile-status').textContent = `Zobrazen profil ${name.toUpperCase()}. ${profile.title}`;
+    if (announce) document.getElementById('profile-status').textContent = `${language === 'cs' ? 'Zobrazen profil' : 'Showing profile'} ${name.toUpperCase()}. ${profile.title}`;
   }
+
+  function setLanguage(next, persist = true) {
+    if (!['en', 'cs'].includes(next)) return;
+    language = next; html.lang = next;
+    document.querySelectorAll('[data-en][data-cs]').forEach(node => { node.innerHTML = next === 'cs' ? node.dataset.cs : node.dataset.en; });
+    for (const attribute of ['aria-label', 'alt']) {
+      document.querySelectorAll(`[data-en-${attribute}]`).forEach(node => { node.setAttribute(attribute, node.getAttribute(`data-${next}-${attribute}`)); });
+    }
+    document.querySelectorAll('[data-language]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.language === next)));
+    setProfile(currentProfile, false);
+    if (persist) { try { localStorage.setItem('toxiq-language', next); } catch {} }
+  }
+  document.querySelectorAll('[data-language]').forEach(button => button.addEventListener('click', () => setLanguage(button.dataset.language)));
+  try { setLanguage(localStorage.getItem('toxiq-language') === 'cs' ? 'cs' : 'en', false); } catch { setLanguage('en', false); }
 
   colorwayButtons.forEach(button => button.addEventListener('click', () => setColorway(button.dataset.colorway)));
   document.querySelectorAll('[data-profile]').forEach(button => button.addEventListener('click', () => setProfile(button.dataset.profile)));

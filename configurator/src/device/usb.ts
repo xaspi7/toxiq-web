@@ -1,9 +1,9 @@
 import { parseConfig } from '../config.ts';
-import type { Config } from '../config.ts';
+import type { Config, TextLayout, Theme } from '../config.ts';
 
 export interface DeviceInfo {
   product: string; firmware: string; serial: string; model: string;
-  physicalKeys: number; slots: number; brightness: boolean; textLayout: 'US';
+  physicalKeys: number; slots: number; brightness: boolean; textLayouts: TextLayout[];
 }
 export interface Port { path: string; label: string }
 export type DeviceEvent = { type: 'disconnected'; message: string } | { type: 'button'; key: number; pressed: boolean };
@@ -15,6 +15,9 @@ export interface UsbBridge {
   read(): Promise<State>;
   save(config: Config): Promise<State>;
   onEvent(callback: (event: DeviceEvent) => void): () => void;
+  platform?: string;
+  setTheme?(theme: Theme): Promise<void>;
+  keyboardLayout?(): Promise<TextLayout | null>;
 }
 declare global { interface Window { toxiq?: UsbBridge } }
 

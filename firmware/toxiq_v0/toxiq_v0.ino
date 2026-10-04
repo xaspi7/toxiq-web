@@ -13,7 +13,6 @@ uint8_t const HID_DESCRIPTOR[] = {
   TUD_HID_REPORT_DESC_CONSUMER(HID_REPORT_ID(REPORT_MEDIA)),
   TUD_HID_REPORT_DESC_MOUSE(HID_REPORT_ID(REPORT_MOUSE))
 };
-const uint8_t ASCII_KEYS[128][2] = {HID_ASCII_TO_KEYCODE};
 Adafruit_USBD_HID usbHid;
 BLEDis bleDis;
 BLEHidAdafruit bleHid;
@@ -50,16 +49,16 @@ void processFrame(const char* data) {
     StaticJsonDocument<768> response;
     response["protocol"] = 1; response["id"] = id; response["ok"] = true;
     JsonObject device = response.createNestedObject("device");
-    device["product"] = "TOXIQ"; device["protocol"] = 1; device["configVersion"] = 1;
-    device["firmware"] = "0.4.0"; device["model"] = "XIAO nRF52840 Plus V0"; device["serial"] = serialNumber;
+    device["product"] = "TOXIQ"; device["protocol"] = 1; device["configVersion"] = 2;
+    device["firmware"] = "0.5.0"; device["model"] = "XIAO nRF52840 Plus V0"; device["serial"] = serialNumber;
     device["physicalKeys"] = BUTTON_COUNT; device["slots"] = 6; device["brightness"] = false;
-    device["storage"] = storageReady; device["textLayout"] = "US";
+    device["storage"] = storageReady; JsonArray layouts = device.createNestedArray("textLayouts"); layouts.add("US"); layouts.add("CZ"); layouts.add("CZ_QWERTY");
     serializeJson(response,Serial); Serial.println();
   } else if (!strcmp(op,"get")) sendState(id,true);
   else if (!strcmp(op,"set")) {
     if (!request["expectedRevision"].is<uint32_t>() || request["expectedRevision"].as<uint32_t>() != revision) { sendError(id,"conflict"); return; }
     JsonVariantConst incoming = request["config"].as<JsonVariantConst>();
-    if (!validConfig(incoming)) { sendError(id,"invalid_config"); return; }
+    if (incoming["version"].as<int>() != 2 || !validConfig(incoming)) { sendError(id,"invalid_config"); return; }
     if (!storageReady || revision == UINT32_MAX) { sendError(id,"storage"); return; }
     String oldJson, newJson; serializeJson(configuration,oldJson); serializeJson(incoming,newJson);
     if (oldJson == newJson) { sendState(id,false); return; } // No needless flash wear.
@@ -88,12 +87,19 @@ void serviceSerial() {
 }
 
 enum JobType { JOB_KEY, JOB_TEXT, JOB_MEDIA, JOB_MOUSE };
-struct Job { JobType type; uint8_t modifier; uint16_t usage; char text[241]; };
+struct Job { JobType type; uint8_t modifier; uint16_t usage; TextLayoutId layout; char text[721]; };
 Job queue[8], current;
 uint8_t queueHead = 0, queueLength = 0;
 bool running = false, releasePhase = false, jobUsb = false;
 size_t textPosition = 0;
 uint32_t nextReport = 0, reportWait = 0;
+const TextMapping* currentMapping = nullptr;
+uint8_t textStroke = 0;
+bool prepareTextCharacter() {
+  uint32_t cp=decodeCodepoint(current.text,textPosition);
+  currentMapping=textMapping(cp,current.layout); textStroke=0;
+  return currentMapping != nullptr;
+}
 
 bool sendJobReport(bool release) {
   if (jobUsb) { if (!TinyUSBDevice.mounted() || !usbHid.ready()) return false; }
@@ -101,8 +107,7 @@ bool sendJobReport(bool release) {
   if (current.type == JOB_KEY || current.type == JOB_TEXT) {
     uint8_t modifier = current.modifier, usage = current.usage;
     if (current.type == JOB_TEXT && !release) {
-      unsigned char ch = current.text[textPosition];
-      modifier = ASCII_KEYS[ch][0] ? 2 : 0; usage = ASCII_KEYS[ch][1];
+      modifier = currentMapping->strokes[textStroke].modifier; usage = currentMapping->strokes[textStroke].usage;
     }
     uint8_t keys[6] = { (uint8_t)(release ? 0 : usage),0,0,0,0,0 };
     return jobUsb ? usbHid.keyboardReport(REPORT_KEYBOARD,release ? 0 : modifier,keys) : bleHid.keyboardReport(release ? 0 : modifier,keys);
@@ -117,8 +122,8 @@ void enqueueButton(size_t index) {
   JsonVariantConst key = configuration["profiles"][configuration["activeProfile"].as<const char*>()]["keys"][index];
   const char* type = key["type"]; const char* value = key["value"];
   Job& job = queue[(queueHead + queueLength) % 8];
-  job.modifier = 0; job.usage = 0; job.text[0] = 0;
-  if (!strcmp(type,"text")) { job.type = JOB_TEXT; strncpy(job.text,value,240); job.text[240] = 0; }
+  job.modifier = 0; job.usage = 0; job.text[0] = 0; job.layout = textLayoutId(configuration["textLayout"] | "US");
+  if (!strcmp(type,"text")) { job.type = JOB_TEXT; strncpy(job.text,value,720); job.text[720] = 0; }
   else if (!strcmp(type,"key")) { job.type = JOB_KEY; job.usage = keyUsage(value); }
   else if (!strcmp(type,"hotkey")) { job.type = JOB_KEY; uint8_t usage; hotkeyUsage(value,job.modifier,usage); job.usage = usage; }
   else if (!strcmp(type,"media")) { job.type = JOB_MEDIA; job.usage = mediaUsage(value); }
@@ -131,6 +136,7 @@ void serviceJobs() {
     jobUsb = TinyUSBDevice.mounted();
     if (!jobUsb && !Bluefruit.connected()) return;
     running = true; releasePhase = false; textPosition = 0; nextReport = millis(); reportWait = millis();
+    if (current.type == JOB_TEXT && !prepareTextCharacter()) { running = false; return; }
   }
   if (!running || (int32_t)(millis() - nextReport) < 0) return;
   if (!sendJobReport(releasePhase)) {
@@ -147,7 +153,9 @@ void serviceJobs() {
   if (!releasePhase) releasePhase = true;
   else {
     releasePhase = false;
-    if (current.type != JOB_TEXT || current.text[++textPosition] == 0) running = false;
+    if (current.type != JOB_TEXT) running = false;
+    else if (textStroke == 0 && currentMapping->strokes[1].usage) textStroke = 1;
+    else if (current.text[textPosition] == 0 || !prepareTextCharacter()) running = false;
   }
 }
 struct ButtonState { bool raw; bool stable; uint32_t changed; };
@@ -186,6 +194,8 @@ void setup() {
       }
     }
   }
+  // Migrate older stored profiles in memory without erasing either flash slot.
+  if (configuration["version"].as<int>() == 1) { configuration["version"] = 2; configuration["textLayout"] = "US"; }
   Bluefruit.Advertising.addFlags(BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE);
   Bluefruit.Advertising.addTxPower(); Bluefruit.Advertising.addAppearance(BLE_APPEARANCE_HID_KEYBOARD);
   Bluefruit.Advertising.addService(bleHid); Bluefruit.ScanResponse.addName();

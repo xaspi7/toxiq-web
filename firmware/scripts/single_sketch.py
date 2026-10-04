@@ -6,7 +6,7 @@ import pathlib
 
 def export_sketch(output: pathlib.Path) -> None:
     root = pathlib.Path(__file__).resolve().parents[1]
-    sources = ["Config.h", "Storage.h", "Defaults.h", "toxiq_v0.ino"]
+    sources = ["TextLayout.h", "Config.h", "Storage.h", "Defaults.h", "toxiq_v0.ino"]
     includes = [line for line in (root / "toxiq_v0/toxiq_v0.ino").read_text().splitlines() if line.startswith("#include <")]
     sections = []
     for name in sources:
@@ -26,32 +26,34 @@ def export_sketch(output: pathlib.Path) -> None:
 
     # The Arduino IDE inserts function prototypes before the first function.
     # Declare the storage type there and give the default argument only once.
-    sections[0] = sections[0].replace("bool ascii = false) {", "bool ascii) {")
+    sections[1] = sections[1].replace("bool ascii = false) {", "bool ascii) {")
     header = """/*
- * TOXIQ V0 firmware 0.4.0 - jeden soubor pro Arduino IDE
+ * TOXIQ V0 firmware 0.5.0 - single Arduino IDE sketch
  *
- * Deska: Seeed XIAO nRF52840 Plus.
- * Board Manager: Seeed nRF52 Boards 1.1.13 (nikoli mbed).
+ * Board: Seeed XIAO nRF52840 Plus.
+ * Board Manager: Seeed nRF52 Boards 1.1.13 (Adafruit core).
  * URL: https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json
  * Library Manager: ArduinoJson 6.21.5.
- * TinyUSB, Bluefruit a LittleFS jsou soucasti uvedeneho board core.
- * Tlacitko 1: D0 -> spinac -> GND. Tlacitko 2: D1 -> spinac -> GND.
+ * TinyUSB, Bluefruit and LittleFS are bundled with this board core.
+ * Button 1: D0 -> switch -> GND. Button 2: D1 -> switch -> GND.
  *
- * Otevri TOXIQ_V0.ino. Pokud IDE nabidne stejnojmennou slozku, potvrd ji.
- * Vyber desku a Port, pak Nahraj. Pro pripojeni v aplikaci zavri Serial Monitor.
- * Zadny dalsi lokalni .h nebo .cpp soubor neni potreba.
- * USB konfigurace + USB/BLE klavesnice/mys; textova makra pouzivaji US layout.
+ * Open TOXIQ_V0.ino. Accept the matching sketch folder if Arduino IDE asks.
+ * Select the board and Port, then Upload. Close Serial Monitor before connecting.
+ * No other local .h or .cpp file is needed.
+ * USB configuration + USB/BLE HID. Select US or Czech QWERTZ/QWERTY in the app.
  */
 
 """
     prototypes = """
 struct StorageHeader;
+struct TextMapping;
+enum TextLayoutId : int;
 inline uint32_t storageCrc(const StorageHeader& header, const char* json);
 inline bool stringValid(JsonVariantConst value, size_t maxUnits, bool ascii = false);
 
 """
     code = header + "\n".join(includes) + "\n" + prototypes
-    labels = ["Validace konfigurace a HID kody", "Ukladani do flash", "Vychozi profily", "USB, BLE a tlacitka"]
+    labels = ["Text keyboard layouts", "Configuration validation and HID codes", "Flash storage", "Default profiles", "USB, BLE and buttons"]
     code += "\n\n".join(f"// {label}\n{section}" for label, section in zip(labels, sections)) + "\n"
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(code, encoding="utf-8")

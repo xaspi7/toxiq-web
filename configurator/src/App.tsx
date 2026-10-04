@@ -1,26 +1,28 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  ACTION_TYPES, PROFILE_IDS, MEDIA, MOUSE, KEY_CODES, STORAGE_KEY, THEME_KEY,
+  ACTION_TYPES, PROFILE_IDS, MEDIA, MOUSE, KEY_CODES, STORAGE_KEY, THEME_KEY, TEXT_LAYOUTS,
   makeDefaultConfig, parseConfig, actionError, configError, defaultAction, summary, captureHotkey,
 } from './config.ts';
-import type { Config, KeyAction, Theme } from './config.ts';
+import type { Config, KeyAction, Theme, TextLayout } from './config.ts';
 import type { CSSProperties } from 'react';
 import { MockDevice } from './device/device.ts';
 import { UsbDevice } from './device/usb.ts';
 import type { DeviceInfo, Port } from './device/usb.ts';
 import { Icon } from './Icon.tsx';
+import { LANGUAGE_KEY, readLanguage, translate, errorText } from './i18n.ts';
+import type { Language, MessageKey } from './i18n.ts';
 import darkWordmark from '../../assets/wordmark-black.svg';
 import lightWordmark from '../../assets/wordmark-white.svg';
 import darkQ from '../../assets/signature-q.svg';
 import lightQ from '../../assets/signature-q-white.svg';
 
-function readInitial(): { config: Config; notice: string } {
+function readInitial(): { config: Config; notice: string; fresh: boolean } {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     const legacy = raw ? null : localStorage.getItem('toxiq-config-v01');
-    if (raw || legacy) return { config: parseConfig(JSON.parse((raw || legacy)!), { allowDraft: true, legacy: Boolean(legacy) }), notice: legacy ? 'Načteno nastavení z v0.1.' : '' };
-  } catch { return { config: makeDefaultConfig(), notice: 'Uložené nastavení nešlo načíst. Původní data zůstala beze změny; exportuj si nové nastavení před zavřením.' }; }
-  return { config: makeDefaultConfig(), notice: '' };
+    if (raw || legacy) return { config: parseConfig(JSON.parse((raw || legacy)!), { allowDraft: true, legacy: Boolean(legacy) }), notice: legacy ? 'migrated' : '', fresh: JSON.parse((raw || legacy)!).version !== 2 };
+  } catch { return { config: makeDefaultConfig(), notice: 'local_corrupt', fresh: false }; }
+  return { config: makeDefaultConfig(), notice: '', fresh: true };
 }
 function readTheme(): Theme {
   try {
@@ -29,12 +31,18 @@ function readTheme(): Theme {
     return value === 'white' || (!value && website?.colorway === 'white') ? 'white' : 'black';
   } catch { return 'black'; }
 }
-const displayType: Record<KeyAction['type'], string> = { key: 'Klávesa', hotkey: 'Zkratka', text: 'Text', media: 'Média', mouse: 'Myš' };
+const typeMessage: Record<KeyAction['type'], MessageKey> = { key: 'key_type', hotkey: 'hotkey_type', text: 'text_type', media: 'media_type', mouse: 'mouse_type' };
 
 export function App() {
   const [initial] = useState(readInitial);
   const [config, setConfig] = useState(initial.config);
   const [theme, setTheme] = useState(readTheme);
+  const [language, setLanguage] = useState<Language>(readLanguage);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const t = (id: MessageKey) => translate(id, language);
+  const displayError = (value: string) => errorText(value, language);
   const [selected, setSelected] = useState(0);
   const [device] = useState(() => window.toxiq ? new UsbDevice(window.toxiq) : new MockDevice());
   const isUsb = device.kind === 'usb';
@@ -49,8 +57,8 @@ export function App() {
   const [savedSnapshot, setSavedSnapshot] = useState('');
   const [saveNotice, setSaveNotice] = useState('');
   const [notice, setNotice] = useState(initial.notice);
-  const [storageStatus, setStorageStatus] = useState('');
-  const [storageBlocked, setStorageBlocked] = useState(Boolean(initial.notice && !initial.notice.includes('v0.1')));
+  const [storageStatus, setStorageStatus] = useState('draft_saved');
+  const [storageBlocked, setStorageBlocked] = useState(initial.notice === 'local_corrupt');
   const [capturing, setCapturing] = useState(false);
   const importInput = useRef<HTMLInputElement>(null);
   const captureInput = useRef<HTMLInputElement>(null);
@@ -58,18 +66,20 @@ export function App() {
   configRef.current = config;
   const profile = config.profiles[config.activeProfile];
   const key = profile.keys[selected];
-  const error = actionError(key);
+  const error = actionError(key, config.textLayout);
   const fullError = configError(config);
   const isSavedToDemo = savedSnapshot === JSON.stringify(config);
   const actionDrafts = useRef(new Map<string, string>());
 
   useEffect(() => {
-    if (storageBlocked) { setStorageStatus('Automatické ukládání pozastaveno.'); return; }
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(config)); setStorageStatus('Uloženo lokálně'); }
-    catch { setStorageStatus('Lokální úložiště není dostupné. Použij export.'); }
+    if (storageBlocked) { setStorageStatus('storage_paused'); return; }
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(config)); setStorageStatus('draft_saved'); }
+    catch { setStorageStatus('storage_failed'); }
   }, [config, storageBlocked]);
   useEffect(() => {
     document.documentElement.dataset.colorway = theme;
+    document.documentElement.dataset.platform = window.toxiq?.platform || 'browser';
+    void window.toxiq?.setTheme?.(theme).catch(() => {});
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'black' ? '#090A0C' : '#F4F4F0');
     try {
       localStorage.setItem(THEME_KEY, theme);
@@ -95,6 +105,27 @@ export function App() {
   }, [device]);
   useEffect(() => { if (!ports.some(port => port.path === portPath)) setPortPath(ports[0]?.path || ''); }, [ports, portPath]);
 
+  useEffect(() => {
+    document.documentElement.lang = language;
+    try { localStorage.setItem(LANGUAGE_KEY, language); } catch { /* Optional preference. */ }
+  }, [language]);
+  useEffect(() => {
+    if (!initial.fresh || !window.toxiq?.keyboardLayout) return;
+    const start = JSON.stringify(configRef.current);
+    let cancelled = false;
+    void window.toxiq.keyboardLayout().then(layout => {
+      if (!cancelled && layout && JSON.stringify(configRef.current) === start) setConfig(previous => ({ ...previous, textLayout: layout }));
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [initial.fresh]);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const close = (event: PointerEvent) => { if (!menuRef.current?.contains(event.target as Node)) setMenuOpen(false); };
+    const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') { setMenuOpen(false); menuButton.current?.focus(); } };
+    document.addEventListener('pointerdown', close); document.addEventListener('keydown', escape);
+    return () => { document.removeEventListener('pointerdown', close); document.removeEventListener('keydown', escape); };
+  }, [menuOpen]);
+
   function updateKey(update: Partial<KeyAction>) {
     setSaveNotice('');
     setConfig(previous => {
@@ -112,19 +143,19 @@ export function App() {
     setCapturing(false);
   }
   async function toggleDevice() {
-    if (connecting) return;
+    if (connecting || reading || saving) return;
     setConnecting(true); setSaveNotice('');
     try {
       if (device.connected) { await device.disconnect(); setSavedSnapshot(''); setDeviceInfo(null); setPressedKeys([]); }
       else if (device instanceof UsbDevice) {
         const path = portPath || (await device.list())[0]?.path;
-        if (!path) throw new Error('XIAO není připojené. Připoj USB kabel a nahraj TOXIQ firmware v0.4.');
+        if (!path) throw new Error('no_device');
         const stored = await device.connect(path);
         setDeviceInfo(device.info); setSavedSnapshot(JSON.stringify(stored));
-        setSaveNotice('Připojeno. Můžeš načíst nastavení zařízení nebo zapsat své změny.');
+        setSaveNotice('connected_notice');
       } else await device.connect();
       setConnected(device.connected);
-    } catch (error) { setConnected(false); setNotice(error instanceof Error ? error.message : 'USB připojení selhalo.'); }
+    } catch (error) { setConnected(false); setNotice(error instanceof Error ? error.message : 'usb_failed'); }
     finally { setConnecting(false); }
   }
   async function readFromDevice() {
@@ -134,23 +165,23 @@ export function App() {
     try {
       const stored = await device.readConfig();
       setSavedSnapshot(JSON.stringify(stored));
-      if (JSON.stringify(configRef.current) !== draftAtStart) { setNotice('Během načítání jsi upravil nastavení. Změny zůstaly zachované; načti zařízení znovu.'); return; }
+      if (JSON.stringify(configRef.current) !== draftAtStart) { setNotice('edited_during_read'); return; }
       // Preserve the previous local draft before explicitly replacing it.
       try { localStorage.setItem('toxiq.configurator.before-device-read', draftAtStart); }
-      catch { throw new Error('Rozpracované nastavení nelze zálohovat. Nejdřív ho exportuj.'); }
-      actionDrafts.current.clear(); setConfig(stored); selectKey(0); setStorageBlocked(false); setSaveNotice('Načteno ze zařízení.');
-    } catch (error) { setNotice(error instanceof Error ? error.message : 'Načítání selhalo.'); }
+      catch { throw new Error('backup_failed'); }
+      actionDrafts.current.clear(); setConfig(stored); selectKey(0); setStorageBlocked(false); setSaveNotice('read_notice');
+    } catch (error) { setNotice(error instanceof Error ? error.message : 'operation_failed'); }
     finally { setReading(false); }
   }
   async function saveToDevice() {
-    if (saving || reading || configError(config)) return;
+    if (connecting || saving || reading || configError(config)) return;
     const snapshot = structuredClone(config);
     setSaving(true); setSaveNotice('');
     try {
       await device.saveConfig(snapshot);
       setSavedSnapshot(JSON.stringify(snapshot));
-      setSaveNotice(JSON.stringify(configRef.current) === JSON.stringify(snapshot) ? (isUsb ? 'Uloženo v zařízení. Zápis ověřen.' : 'Uloženo do demo zařízení.') : 'Uloženo. Nové změny ještě čekají.');
-    } catch (error) { setSaveNotice(error instanceof Error ? error.message : 'Ukládání selhalo.'); }
+      setSaveNotice(JSON.stringify(configRef.current) === JSON.stringify(snapshot) ? (isUsb ? 'saved' : 'saved_demo') : 'new_changes');
+    } catch (error) { setSaveNotice(error instanceof Error ? error.message : 'operation_failed'); }
     finally { setSaving(false); }
   }
   function exportConfig() {
@@ -158,76 +189,80 @@ export function App() {
     const url = URL.createObjectURL(new Blob([JSON.stringify(config, null, 2) + '\n'], { type: 'application/json' }));
     const link = document.createElement('a'); link.href = url; link.download = 'toxiq-profiles.json'; link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    setNotice('Profily byly exportovány.');
+    setNotice('exported');
   }
   async function importConfig(file?: File) {
     if (!file) return;
     try {
-      if (file.size > 64 * 1024) throw new Error('Soubor je příliš velký. Maximum je 64 kB.');
+      if (file.size > 64 * 1024) throw new Error('file_large');
       const imported = parseConfig(JSON.parse(await file.text()));
+      try { localStorage.setItem('toxiq.configurator.before-import', JSON.stringify(configRef.current)); } catch { throw new Error('backup_failed'); }
       actionDrafts.current.clear(); setConfig(imported); setSelected(0); setCapturing(false); setStorageBlocked(false); setSaveNotice('');
-      setNotice('Profily byly importovány.');
-    } catch (error) { setNotice(error instanceof SyntaxError ? 'Soubor neobsahuje platný JSON.' : error instanceof Error ? error.message : 'Import selhal.'); }
+      setNotice('imported');
+    } catch (error) { setNotice(error instanceof SyntaxError ? 'json_invalid' : error instanceof Error ? error.message : 'operation_failed'); }
   }
 
   return <div className="desktop-app">
-    <a className="skip-link" href="#workspace">Přejít na klávesy</a>
+    <a className="skip-link" href="#workspace">{t('skip')}</a>
     <header className="app-chrome">
       <div className="app-brand"><span className="asset-pair wordmark"><img data-variant="black" src={darkWordmark} alt="TOXIQ" /><img data-variant="white" src={lightWordmark} alt="TOXIQ" /></span><span className="app-name">Configurator</span></div>
-      <span className="demo-label" title={isUsb ? 'Konfigurace zařízení přes USB' : 'Lokální náhled bez hardwaru'}>{isUsb ? 'USB' : 'DEMO'}</span>
+      <div className="chrome-actions"><select className="language-select" aria-label={t('language')} value={language} onChange={event => setLanguage(event.target.value as Language)}><option value="en">EN</option><option value="cs">CZ</option></select><button className="icon-button" type="button" aria-label={t('theme')} title={t('theme')} onClick={() => setTheme(theme === 'black' ? 'white' : 'black')}><Icon name={theme === 'black' ? 'sun' : 'moon'} /></button></div>
     </header>
-
+    <div className="workspace-toolbar">
+      <div className="profile-options" role="group" aria-label={t('profiles')}>{PROFILE_IDS.map(id => <button className="profile-button" type="button" key={id} aria-pressed={config.activeProfile === id} onClick={() => { setConfig(previous => ({ ...previous, activeProfile: id })); selectKey(0); setSaveNotice(''); }}><Icon name={id} /><span>{config.profiles[id].name}</span></button>)}</div>
+      <div className="connection-actions">
+        {isUsb && !connected && ports.length > 1 && <select className="port-select" aria-label="USB" value={portPath} onChange={event => setPortPath(event.target.value)}>{ports.map(port => <option key={port.path} value={port.path}>{port.label}</option>)}</select>}
+        {connected ? <span className="connection-state"><span className="status-dot" />{isUsb ? 'TOXIQ V0' : 'DEMO'}</span> : <button className="connect-button" type="button" disabled={connecting || reading || saving} onClick={() => void toggleDevice()}><Icon name="plug" /><span>{connecting ? t('connecting') : isUsb ? t('connect') : t('connect_demo')}</span></button>}
+        <div className="more-menu" ref={menuRef}><button className="icon-button" type="button" aria-label={t('more')} aria-expanded={menuOpen} aria-controls="file-menu" ref={menuButton} onClick={() => setMenuOpen(!menuOpen)}><Icon name="more" /></button>
+          {menuOpen && <div className="menu-popover" id="file-menu">
+            <button type="button" onClick={() => { setMenuOpen(false); importInput.current?.click(); }}><Icon name="download" />{t('import')}</button>
+            <button type="button" onClick={() => { setMenuOpen(false); exportConfig(); }}><Icon name="upload" />{t('export')}</button>
+            {isUsb && <button type="button" disabled={!connected || connecting || reading || saving} onClick={() => { setMenuOpen(false); void readFromDevice(); }}><Icon name="download" />{reading ? t('reading') : t('read')}</button>}
+            {connected && <button type="button" disabled={connecting || reading || saving} onClick={() => { setMenuOpen(false); void toggleDevice(); }}><Icon name="plug" />{t('disconnect')}</button>}
+          </div>}
+        </div>
+        <input ref={importInput} type="file" accept=".json,application/json" hidden aria-label={t('import')} onChange={event => { void importConfig(event.target.files?.[0]); event.target.value = ''; }} />
+      </div>
+    </div>
     <div className="app-body">
-      <aside className="sidebar" aria-label="Profily a zařízení">
-        <p className="sidebar-label">Profily</p>
-        <div className="profile-options" role="group" aria-label="Profily">
-          {PROFILE_IDS.map(id => <button className="profile-button" type="button" key={id} aria-pressed={config.activeProfile === id} onClick={() => { setConfig(previous => ({ ...previous, activeProfile: id })); selectKey(0); setSaveNotice(''); }}><Icon name={id} /><span>{config.profiles[id].name}</span></button>)}
-        </div>
-        <div className="sidebar-bottom">
-          <div className="theme-switch" role="group" aria-label="Vzhled">
-            <button type="button" aria-label="Black / Lime" aria-pressed={theme === 'black'} onClick={() => setTheme('black')}><Icon name="moon" /><span>Black</span></button>
-            <button type="button" aria-label="White / Violet" aria-pressed={theme === 'white'} onClick={() => setTheme('white')}><Icon name="sun" /><span>White</span></button>
-          </div>
-          {isUsb && !connected && ports.length > 1 && <select className="port-select" aria-label="USB zařízení" value={portPath} onChange={event => setPortPath(event.target.value)}>{ports.map(port => <option key={port.path} value={port.path}>{port.label}</option>)}</select>}
-          <button className="device-control" type="button" disabled={connecting || reading || saving} aria-label={isUsb ? connected ? 'Odpojit zařízení' : 'Připojit USB zařízení' : connected ? 'Odpojit demo' : 'Připojit demo zařízení'} aria-pressed={connected} onClick={() => void toggleDevice()}><Icon name="plug" /><span className="device-state"><strong>{isUsb ? 'TOXIQ USB' : 'Demo'}</strong><span>{connecting ? 'Připojuji…' : connected ? 'Připojeno' : isUsb && ports.length ? 'Připraveno' : 'Odpojeno'}</span></span><span className="toggle-track" aria-hidden="true"><span /></span></button>
-          {isUsb && <button className="tool-button" type="button" disabled={!connected || reading || saving} onClick={() => void readFromDevice()}><Icon name="download" /><span>{reading ? 'Načítám…' : 'Načíst ze zařízení'}</span></button>}
-        </div>
-      </aside>
-
       <main className="workspace" id="workspace">
-        <div className="workspace-toolbar"><div><h1>{profile.name}</h1><span>Klávesy</span></div><div className="file-actions"><button className="tool-button" type="button" onClick={() => importInput.current?.click()}><Icon name="download" /><span>Import</span></button><button className="tool-button" type="button" onClick={exportConfig}><Icon name="upload" /><span>Export</span></button><input ref={importInput} type="file" accept=".json,application/json" hidden aria-label="Import profilů" onChange={event => { void importConfig(event.target.files?.[0]); event.target.value = ''; }} /></div></div>
+        <div className="stage-heading"><h1>{profile.name}</h1><span>{t('select_key')}</span></div>
         <div className="device-stage">
-          <div className="pad-shell" key={config.activeProfile} style={{ '--brightness': deviceInfo?.brightness === false ? 0 : config.brightness / 100 } as CSSProperties}>
-            <div className="key-grid" role="group" aria-label="Klávesy TOXIQ, rozložení 3 krát 2">
-              {profile.keys.map((action, index) => <button type="button" className="macro-key" key={index} data-key-index={index} data-physical={deviceInfo ? index < deviceInfo.physicalKeys : undefined} data-hardware-pressed={pressedKeys.includes(index)} tabIndex={selected === index ? 0 : -1} aria-pressed={selected === index} title={deviceInfo && index >= deviceInfo.physicalKeys ? 'Připraveno pro budoucí tlačítko' : undefined} aria-label={`Klávesa ${index + 1}: ${action.label || 'bez názvu'}, ${displayType[action.type]}, ${summary(action)}`} onClick={() => selectKey(index)} onKeyDown={event => {
+          <div className="pad-shell" style={{ '--brightness': deviceInfo?.brightness === false ? 0 : config.brightness / 100 } as CSSProperties}>
+            <div className="pad-port" aria-hidden="true" />
+            <div className="key-grid" role="group" aria-label={t('key_grid')}>
+              {profile.keys.map((action, index) => <button type="button" className="macro-key" key={index} data-key-index={index} data-physical={deviceInfo ? index < deviceInfo.physicalKeys : undefined} data-hardware-pressed={pressedKeys.includes(index)} tabIndex={selected === index ? 0 : -1} aria-pressed={selected === index} title={deviceInfo && index >= deviceInfo.physicalKeys ? t('future_key') : undefined} aria-label={t('key') + ' ' + (index + 1) + ': ' + action.label + ', ' + t(typeMessage[action.type]) + ', ' + summary(action)} onClick={() => selectKey(index)} onKeyDown={event => {
                 const target = ({ ArrowLeft: Math.max(0, index - 1), ArrowRight: Math.min(5, index + 1), ArrowUp: Math.max(0, index - 3), ArrowDown: Math.min(5, index + 3), Home: 0, End: 5 } as Record<string, number>)[event.key];
                 if (target === undefined) return;
-                event.preventDefault(); selectKey(target); (event.currentTarget.parentElement?.querySelector(`[data-key-index="${target}"]`) as HTMLElement | null)?.focus();
+                event.preventDefault(); selectKey(target); (event.currentTarget.parentElement?.querySelector('[data-key-index="' + target + '"]') as HTMLElement | null)?.focus();
               }}><span className="key-face"><span className="key-topline"><span>{String(index + 1).padStart(2, '0')}</span><Icon name={action.type} /></span><strong>{action.label || '—'}</strong><small>{summary(action)}</small></span></button>)}
             </div>
-            <div className="pad-mark"><span className="asset-pair signature"><img data-variant="black" src={darkQ} alt="" /><img data-variant="white" src={lightQ} alt="" /></span></div>
+            <div className="pad-mark"><span className="asset-pair signature"><img data-variant="black" src={darkQ} alt="" /><img data-variant="white" src={lightQ} alt="" /></span><span>TOXIQ</span></div>
           </div>
         </div>
-        <div className="lighting"><Icon name="sun" /><label htmlFor="brightness">Podsvícení</label><input id="brightness" type="range" min="0" max="100" step="1" disabled={deviceInfo?.brightness === false} value={config.brightness} onChange={event => { setConfig(previous => ({ ...previous, brightness: Number(event.target.value) })); setSaveNotice(''); }} /><output htmlFor="brightness">{deviceInfo?.brightness === false ? 'Bez LED' : `${config.brightness}%`}</output></div>
+        <div className="device-settings">
+          <div className="layout-setting"><label htmlFor="text-layout">{t('typing_layout')}</label><div className="select-wrap"><select id="text-layout" value={config.textLayout} onChange={event => { setConfig(previous => ({ ...previous, textLayout: event.target.value as TextLayout })); setSaveNotice(''); }}>{TEXT_LAYOUTS.map(layout => <option value={layout} key={layout}>{t(layout)}</option>)}</select><Icon name="chevron" /></div><p>{t('layout_hint')}</p></div>
+          {deviceInfo?.brightness !== false && <div className="lighting"><label htmlFor="brightness">{t('brightness')} <output>{config.brightness}%</output></label><input id="brightness" type="range" min="0" max="100" value={config.brightness} onChange={event => { setConfig(previous => ({ ...previous, brightness: Number(event.target.value) })); setSaveNotice(''); }} /></div>}
+        </div>
       </main>
-
       <section className="inspector" aria-labelledby="selected-heading">
-        <div className="inspector-heading"><span className="selected-key-badge">{String(selected + 1).padStart(2, '0')}</span><h2 id="selected-heading">Klávesa {String(selected + 1).padStart(2, '0')}</h2></div>
-        <div className="inspector-scroll" key={`${config.activeProfile}:${selected}`}>
-          <div className="editor-field"><label htmlFor="key-label">Název</label><input id="key-label" type="text" maxLength={12} autoComplete="off" value={key.label} onChange={event => updateKey({ label: event.target.value.toUpperCase() })} /></div>
-          <fieldset className="action-field"><legend>Akce</legend><div className="action-types">{ACTION_TYPES.map(type => <button type="button" key={type} aria-pressed={key.type === type} onClick={() => switchAction(type)}><Icon name={type} /><span>{displayType[type]}</span></button>)}</div></fieldset>
+        <div className="inspector-heading"><span className="selected-key-badge">{String(selected + 1).padStart(2, '0')}</span><div><h2 id="selected-heading">{t('key') + ' ' + String(selected + 1).padStart(2, '0')}</h2><span>{profile.name}</span></div><Icon name={key.type} /></div>
+        <div className="inspector-scroll">
+          <div className="editor-field"><label htmlFor="key-label">{t('label')}</label><input id="key-label" type="text" maxLength={12} autoComplete="off" value={key.label} onChange={event => updateKey({ label: event.target.value.toUpperCase() })} /></div>
+          <div className="editor-field"><label htmlFor="action-type">{t('action')}</label><div className="select-wrap"><select id="action-type" value={key.type} onChange={event => switchAction(event.target.value as KeyAction['type'])}>{ACTION_TYPES.map(type => <option value={type} key={type}>{t(typeMessage[type])}</option>)}</select><Icon name="chevron" /></div></div>
           <div className="editor-field action-value">
-            {key.type === 'text' && <><label htmlFor="action-value">Text k odeslání</label><textarea id="action-value" rows={4} maxLength={240} placeholder="Napiš zprávu…" value={key.value} aria-invalid={Boolean(error)} aria-describedby="key-error" onChange={event => updateKey({ value: event.target.value })} /><p className="character-count">{isUsb && <span>Bez diakritiky · rozložení US</span>}<span className="count">{key.value.length} / 240</span></p></>}
-            {key.type === 'hotkey' && <><label htmlFor="action-value">Zkratka</label><input ref={captureInput} id="action-value" className={capturing ? 'recording' : ''} type="text" autoComplete="off" maxLength={40} value={capturing ? '' : key.value} placeholder={capturing ? 'Stiskni zkratku…' : 'CTRL+SHIFT+M'} readOnly={capturing} aria-invalid={Boolean(error)} aria-describedby="key-error" onChange={event => updateKey({ value: event.target.value.toUpperCase().replaceAll(' ', '') })} onKeyDown={event => { if (!capturing) return; event.preventDefault(); if (event.code === 'Escape') { setCapturing(false); return; } const value = captureHotkey(event.nativeEvent); if (value) { updateKey({ value }); setCapturing(false); } }} onBlur={() => setCapturing(false)} /><button className={`record-button ${capturing ? 'is-recording' : ''}`} type="button" onMouseDown={event => event.preventDefault()} onClick={() => setCapturing(value => !value)}><Icon name={capturing ? 'close' : 'record'} /><span>{capturing ? 'Zrušit záznam' : 'Zaznamenat zkratku'}</span></button></>}
-            {key.type === 'key' && <><label htmlFor="action-value">Klávesa</label><div className="select-wrap"><select id="action-value" value={key.value} onChange={event => updateKey({ value: event.target.value })}>{KEY_CODES.map(value => <option key={value}>{value}</option>)}</select><Icon name="chevron" /></div></>}
-            {(key.type === 'media' || key.type === 'mouse') && <><label htmlFor="action-value">{key.type === 'media' ? 'Ovládání médií' : 'Akce myši'}</label><div className="select-wrap"><select id="action-value" value={key.value} onChange={event => updateKey({ value: event.target.value })}>{Object.entries(key.type === 'media' ? MEDIA : MOUSE).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><Icon name="chevron" /></div></>}
-            {error && <p id="key-error" className="key-error" role="status">{error}</p>}
+            {key.type === 'text' && <><label htmlFor="action-value">{t('message')}</label><textarea id="action-value" rows={6} maxLength={240} placeholder={t('text_placeholder')} value={key.value} aria-invalid={Boolean(error)} aria-describedby={error ? 'key-error' : undefined} onChange={event => updateKey({ value: event.target.value })} /><p className="character-count">{key.value.length} / 240</p></>}
+            {key.type === 'hotkey' && <><label htmlFor="action-value">{t('shortcut')}</label><input ref={captureInput} id="action-value" className={capturing ? 'recording' : ''} type="text" autoComplete="off" maxLength={40} value={capturing ? '' : key.value} placeholder={capturing ? t('press_shortcut') : 'CTRL+SHIFT+M'} readOnly={capturing} aria-invalid={Boolean(error)} onChange={event => updateKey({ value: event.target.value.toUpperCase().replaceAll(' ', '') })} onKeyDown={event => { if (!capturing) return; event.preventDefault(); if (event.code === 'Escape') { setCapturing(false); return; } const value = captureHotkey(event.nativeEvent); if (value) { updateKey({ value }); setCapturing(false); } }} onBlur={() => setCapturing(false)} /><button className={'record-button' + (capturing ? ' is-recording' : '')} type="button" onMouseDown={event => event.preventDefault()} onClick={() => setCapturing(value => !value)}><Icon name={capturing ? 'close' : 'record'} /><span>{capturing ? t('cancel') : t('record')}</span></button></>}
+            {key.type === 'key' && <><label htmlFor="action-value">{t('key')}</label><div className="select-wrap"><select id="action-value" value={key.value} onChange={event => updateKey({ value: event.target.value })}>{KEY_CODES.map(value => <option key={value}>{value}</option>)}</select><Icon name="chevron" /></div></>}
+            {(key.type === 'media' || key.type === 'mouse') && <><label htmlFor="action-value">{t(typeMessage[key.type])}</label><div className="select-wrap"><select id="action-value" value={key.value} onChange={event => updateKey({ value: event.target.value })}>{Object.keys(key.type === 'media' ? MEDIA : MOUSE).map(value => <option key={value} value={value}>{t(value as MessageKey)}</option>)}</select><Icon name="chevron" /></div></>}
+            {error && <p id="key-error" className="key-error" role="status">{displayError(error)}</p>}
           </div>
+          {deviceInfo && selected >= deviceInfo.physicalKeys && <p className="future-note">{t('future_key')}</p>}
         </div>
-        <div className="save-zone"><p className="save-status" role="status">{saveNotice || (fullError && !error ? fullError : !connected ? isUsb ? 'Připoj TOXIQ přes USB.' : 'Připoj demo pro zkoušku zápisu.' : isSavedToDemo ? isUsb ? 'Zařízení je aktuální.' : 'Demo je aktuální.' : 'Změny čekají na zápis.')}</p><button type="button" className="save-button" disabled={!connected || saving || reading || Boolean(fullError)} onClick={() => void saveToDevice()}><Icon name={isSavedToDemo ? 'check' : 'save'} /><span>{saving ? 'Ukládám…' : isUsb ? 'Uložit do zařízení' : 'Uložit do dema'}</span></button></div>
+        <div className="save-zone"><p className="save-status" role="status">{displayError(saveNotice || (fullError && !error ? fullError : !connected ? isUsb ? 'connect_hint' : 'demo_hint' : isSavedToDemo ? isUsb ? 'current' : 'demo_current' : 'changes'))}</p><button type="button" className="save-button" disabled={!connected || connecting || saving || reading || Boolean(fullError) || isSavedToDemo} onClick={() => void saveToDevice()}><Icon name={isSavedToDemo ? 'check' : 'save'} /><span>{saving ? t('saving') : isUsb ? t('save') : t('save_demo')}</span></button></div>
       </section>
     </div>
-    <footer className="statusbar"><span><Icon name="info" />{isUsb ? deviceInfo ? `V0 · ${deviceInfo.physicalKeys} tlačítka · FW ${deviceInfo.firmware}` : 'USB · zařízení odpojeno' : 'Demo · bez hardwaru'}</span><span role="status"><Icon name={storageStatus === 'Uloženo lokálně' ? 'check' : 'info'} />{storageStatus}</span></footer>
-    {notice && <div className="notice" role="status"><Icon name="info" /><p>{notice}</p><button className="icon-button" type="button" aria-label="Zavřít oznámení" onClick={() => setNotice('')}><Icon name="close" /></button></div>}
+    <footer className="statusbar"><span><span className={'status-dot' + (connected ? '' : ' offline')} />{isUsb ? deviceInfo ? 'V0 · ' + deviceInfo.physicalKeys + ' ' + t('physical_keys') + ' · FW ' + deviceInfo.firmware : t('disconnected') : t('demo_hint')}</span><span role="status">{displayError(storageStatus)}</span></footer>
+    {notice && <div className="notice" role="status"><Icon name="info" /><p>{displayError(notice)}</p><button className="icon-button" type="button" aria-label={t('close')} onClick={() => setNotice('')}><Icon name="close" /></button></div>}
   </div>;
 }

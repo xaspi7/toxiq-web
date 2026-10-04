@@ -33,7 +33,7 @@ int main() {
   assert(validConfig(config.as<JsonVariantConst>()));
   config["profiles"]["moba"]["keys"][0]["value"] = std::string(241,'A');
   assert(!validConfig(config.as<JsonVariantConst>()));
-  deserializeJson(config,DEFAULT_CONFIG); config["version"] = 2;
+  deserializeJson(config,DEFAULT_CONFIG); config["version"] = 99;
   assert(!validConfig(config.as<JsonVariantConst>()));
   deserializeJson(config,DEFAULT_CONFIG); config["brightness"] = 101;
   assert(!validConfig(config.as<JsonVariantConst>()));
@@ -41,5 +41,24 @@ int main() {
   assert(!validConfig(config.as<JsonVariantConst>()));
   deserializeJson(config,DEFAULT_CONFIG); config["profiles"]["fps"]["keys"].as<JsonArray>().remove(5);
   assert(!validConfig(config.as<JsonVariantConst>()));
+  deserializeJson(config,DEFAULT_CONFIG); config["textLayout"] = "CZ";
+  config["profiles"]["moba"]["keys"][0]["value"] = "Příliš žluťoučký kůň úpěl ďábelské ódy. YZ yz 0123456789!";
+  assert(validConfig(config.as<JsonVariantConst>()));
+  assert(textMapping('y',LAYOUT_CZ)->strokes[0].usage == keyUsage("Z"));
+  assert(textMapping('z',LAYOUT_CZ)->strokes[0].usage == keyUsage("Y"));
+  assert(textMapping('y',LAYOUT_CZ_QWERTY)->strokes[0].usage == keyUsage("Y"));
+  assert(textMapping('1',LAYOUT_CZ)->strokes[0].modifier == 2);
+  assert(textMapping(0x010C,LAYOUT_CZ)->strokes[1].usage != 0); // Č needs a dead key.
+  for (TextLayoutId layout : {LAYOUT_CZ,LAYOUT_CZ_QWERTY}) {
+    assert(textSupported("ěščřžýáíéúůďťňóĚŠČŘŽÝÁÍÉÚŮĎŤŇÓ€",layout));
+    assert(!textSupported("😀",layout));
+    assert(!textSupported("\xC0\xAF",layout));
+    assert(!textSupported("\xED\xA0\x80",layout));
+  }
+  std::string longCzech; for (int i=0;i<240;i++) longCzech += "ů";
+  assert(textSupported(longCzech.c_str(),LAYOUT_CZ));
+  longCzech += "ů"; assert(!textSupported(longCzech.c_str(),LAYOUT_CZ));
+  deserializeJson(config,DEFAULT_CONFIG); config["version"]=1; config.remove("textLayout");
+  assert(validConfig(config.as<JsonVariantConst>())); // Existing flash survives the upgrade.
   std::cout << "Firmware config validation, HID mappings and CRC passed\n";
 }

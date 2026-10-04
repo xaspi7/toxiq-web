@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 
-export type IconName = 'key' | 'hotkey' | 'text' | 'media' | 'mouse' | 'moba' | 'fps' | 'creator' | 'custom' | 'sun' | 'moon' | 'download' | 'upload' | 'save' | 'plug' | 'check' | 'close' | 'record' | 'chevron' | 'info';
+export type IconName = 'key' | 'hotkey' | 'text' | 'media' | 'mouse' | 'moba' | 'fps' | 'creator' | 'custom' | 'sun' | 'moon' | 'download' | 'upload' | 'save' | 'plug' | 'check' | 'close' | 'record' | 'chevron' | 'info' | 'more';
 const drawings: Record<IconName, ReactNode> = {
+  more: <><circle cx="5" cy="12" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /></>,
   key: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M7 9h1m3 0h1m3 0h1m-9 4h1m3 0h1m3 0h1m-9 3h9" /></>,
   hotkey: <><path d="M9 7h6v10H9zM9 7V5a2 2 0 1 0-2 2h10a2 2 0 1 0-2-2v14a2 2 0 1 0 2-2H7a2 2 0 1 0 2 2V7" /></>,
   text: <><path d="M5 5h14M12 5v14M8 19h8M5 5v3m14-3v3" /></>,

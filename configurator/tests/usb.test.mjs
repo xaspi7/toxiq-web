@@ -6,7 +6,7 @@ import { makeDefaultConfig } from '../src/config.ts';
 const require = createRequire(import.meta.url);
 const { ProtocolSession, deviceConfig } = require('../electron/protocol.cjs');
 const { isCandidate } = require('../electron/usb.cjs');
-const info = { product: 'TOXIQ', protocol: 1, configVersion: 1, firmware: '0.4.0', serial: '123456789ABCDEF0', model: 'XIAO nRF52840 Plus V0', physicalKeys: 2, slots: 6, brightness: false, storage: true, textLayout: 'US' };
+const info = { product: 'TOXIQ', protocol: 1, configVersion: 2, firmware: '0.5.0', serial: '123456789ABCDEF0', model: 'XIAO nRF52840 Plus V0', physicalKeys: 2, slots: 6, brightness: false, storage: true, textLayouts: ['US', 'CZ', 'CZ_QWERTY'] };
 
 class FirmwareTransport extends EventEmitter {
   isOpen = true;
@@ -54,23 +54,23 @@ test('handshake, split UTF-8 read, write and independent readback', async () => 
 test('failure or readback mismatch cannot report a successful save', async () => {
   const port = new FirmwareTransport(); const session = new ProtocolSession(port); await session.connect();
   const draft = makeDefaultConfig(); draft.brightness = 65;
-  port.rejectStorage = true; await assert.rejects(session.save(draft), /paměti/); assert.equal(port.revision, 0); assert.equal(draft.brightness, 65);
-  port.rejectStorage = false; port.corruptReadback = true; await assert.rejects(session.save(draft), /nesouhlasí/);
+  port.rejectStorage = true; await assert.rejects(session.save(draft), /storage/); assert.equal(port.revision, 0); assert.equal(draft.brightness, 65);
+  port.rejectStorage = false; port.corruptReadback = true; await assert.rejects(session.save(draft), /readback_failed/);
   session.close();
 });
 test('revision conflict preserves another writer’s configuration', async () => {
   const port = new FirmwareTransport(); const session = new ProtocolSession(port); await session.connect();
   port.revision++; port.config.brightness = 72;
-  await assert.rejects(session.save(makeDefaultConfig()), /mezitím změnilo/); assert.equal(port.config.brightness, 72);
+  await assert.rejects(session.save(makeDefaultConfig()), /conflict/); assert.equal(port.config.brightness, 72);
   session.close();
 });
 test('timeout invalidates connection; unplug rejects pending work immediately', async () => {
   const port = new FirmwareTransport(); const session = new ProtocolSession(port, { timeout: 30, writeTimeout: 30 }); await session.connect();
   port.respond = false;
-  await assert.rejects(session.save(makeDefaultConfig()), /neodpovědělo/); assert.equal(session.closed, true);
-  await assert.rejects(session.read(), /připoj/);
+  await assert.rejects(session.save(makeDefaultConfig()), /timeout/); assert.equal(session.closed, true);
+  await assert.rejects(session.read(), /connect_first/);
   const other = new FirmwareTransport(); const connected = new ProtocolSession(other); await connected.connect(); other.respond = false;
-  const write = connected.save(makeDefaultConfig()); other.close(); await assert.rejects(write, /odpojilo/);
+  const write = connected.save(makeDefaultConfig()); other.close(); await assert.rejects(write, /usb_disconnected/);
 });
 test('button events do not consume responses; oversize frames close the session', async () => {
   const port = new FirmwareTransport(); const session = new ProtocolSession(port); await session.connect();
@@ -82,6 +82,17 @@ test('button events do not consume responses; oversize frames close the session'
 });
 test('unsupported text is rejected before any hardware write', () => {
   const config = makeDefaultConfig(); config.profiles.moba.keys[0].value = 'Příliš';
-  assert.throws(() => deviceConfig(config), /diakritiky/);
+  assert.throws(() => deviceConfig(config), /text_characters/);
   config.profiles.moba.keys[0].value = 'HELLO\nWORLD\t!'; assert.deepEqual(deviceConfig(config), config);
+});
+
+test('Czech UTF-8 and typing layout survive save acknowledgement and split readback', async () => {
+  const port = new FirmwareTransport(); const session = new ProtocolSession(port); await session.connect();
+  const config = makeDefaultConfig(); config.textLayout = 'CZ';
+  config.profiles.moba.keys[0].value = 'Příliš žluťoučký kůň. YZ yz 0123456789!';
+  const saved = await session.save(config);
+  assert.deepEqual(saved.config, config);
+  assert.equal(port.config.textLayout, 'CZ');
+  assert.equal(port.config.profiles.moba.keys[0].value, config.profiles.moba.keys[0].value);
+  session.close();
 });

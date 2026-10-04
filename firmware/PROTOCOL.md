@@ -8,7 +8,7 @@ Every request has `protocol: 1`, a positive integer `id`, and `op`. Every respon
 
 | Operation | Request fields | Successful response |
 | --- | --- | --- |
-| `hello` | none | `device`: product `TOXIQ`, protocol 1, configVersion 1, firmware, model, serial, physicalKeys 2, slots 6, brightness false, storage true/false, textLayout `US` |
+| `hello` | none | `device`: product `TOXIQ`, protocol 1, configVersion 2, firmware, model, serial, physicalKeys 2, slots 6, brightness false, storage true/false, textLayouts `US`, `CZ`, `CZ_QWERTY` |
 | `get` | none | `config`, `revision` |
 | `set` | `config`, `expectedRevision` | `revision`, only after persistent write and flash readback |
 
@@ -18,7 +18,7 @@ Example:
 {"protocol":1,"id":42,"op":"get"}
 ```
 
-The config is the app's version-1 JSON: `version`, `activeProfile`, `brightness`, and `profiles` containing `moba`, `fps`, `creator`, `custom`, each with `name` and exactly six `keys`. Each key has `label`, `type`, `value`. Types: `key`, `hotkey`, `text`, `media`, `mouse`. Profile names use the app's fixed names. Labels max. 12 UTF-16 units, text max. 240 ASCII characters (plus LF/TAB). Supported key/media/mouse values are defined in `configurator/src/config.ts` and `firmware/toxiq_v0/Config.h`. Hotkeys contain unique CTRL/SHIFT/ALT/META modifiers and exactly one key. Brightness is integer 0–100 and stored even when the capability is absent; absent capability must disable the physical preview/control.
+The config is the app's version-2 JSON: `version`, `textLayout`, `activeProfile`, `brightness`, and `profiles` containing `moba`, `fps`, `creator`, `custom`, each with `name` and exactly six `keys`. Each key has `label`, `type`, `value`. Types: `key`, `hotkey`, `text`, `media`, `mouse`. Profile names use the app's fixed names. Labels max. 12 UTF-16 units, text max. 240 supported Unicode characters (plus LF/TAB). Supported key/media/mouse values are defined in `configurator/src/config.ts` and `firmware/toxiq_v0/Config.h`. Hotkeys contain unique CTRL/SHIFT/ALT/META modifiers and exactly one key. Brightness is integer 0–100 and stored even when the capability is absent; absent capability must disable the physical preview/control.
 
 `set` rejects invalid configuration before changing the device. `expectedRevision` implements optimistic concurrency. Repeating identical serialized settings does not write flash or increment revision. Persistence alternates two CRC-protected files and leaves the previous slot intact until the new slot is committed; boot selects the highest valid revision. Revision is an unsigned 32-bit integer; exhaustion fails safely. The app independently issues `get` after `set` and compares configuration and revision before reporting success.
 
@@ -31,3 +31,7 @@ Button event, emitted on debounced changes while the CDC port is open:
 ```
 
 Key indices are zero-based physical positions. Events have no request ID and must not complete pending requests. The UI animates these separately from the selected editor key. The firmware queues up to eight actions, executes press/release reports without blocking the serial loop, and never sends a macro merely because the editor selects a key. Changes to active profile and bindings reach hardware only on `set`; the saved config works after the app closes or the board restarts.
+
+## Configuration schema 2
+
+`version: 2` adds `textLayout: "US" | "CZ" | "CZ_QWERTY"`. The device advertises `configVersion: 2` and `textLayouts` in its hello response. The new app requires this capability before connecting. Version 1 flash slots remain readable and migrate in memory with `textLayout: "US"`; writes use schema 2. Text is UTF-8 with up to 240 supported characters. Windows-derived mappings handle Czech accents and two-stroke dead keys. Each queued macro snapshots its typing layout, so a configuration write cannot change a macro mid-flight.
