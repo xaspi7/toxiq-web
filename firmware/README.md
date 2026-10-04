@@ -19,7 +19,8 @@ UF2 je pouze aplikace pro Plus s již nahraným Seeed bootloaderem a SoftDevice 
 - Board Manager URL: `https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json`.
 - Instaluj **Seeed nRF52 Boards 1.1.13**, vyber **Seeed XIAO nRF52840 Plus** a správný Port.
 - Library Manager: **ArduinoJson 6.21.5**. TinyUSB, Bluefruit, LittleFS a InternalFileSystem jsou součástí core; neinstaluj jiné verze navíc.
-- Otevři `toxiq_v0/toxiq_v0.ino` včetně všech `.h` ve stejné složce a klikni Upload.
+- Otevři **`TOXIQ_V0/TOXIQ_V0.ino`** z nového balíčku. Stačí tento jediný soubor; žádné další lokální `.h` ani `.cpp` nepotřebuješ. Pokud Arduino IDE nabídne vytvoření stejnojmenné složky, potvrď ji. Klikni Upload.
+- Starší release ZIP v0.4.0 má ještě rozdělené zdroje. Z aktuální větve si jediný `.ino` vytvoříš příkazem `python firmware/scripts/single_sketch.py`; výsledný soubor je `firmware/build/TOXIQ_V0/TOXIQ_V0.ino`.
 
 ## První ověření na prototypu
 
@@ -46,8 +47,9 @@ arduino-cli core update-index --additional-urls https://files.seeedstudio.com/ar
 arduino-cli core install Seeeduino:nrf52@1.1.13 --additional-urls https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json
 arduino-cli lib install ArduinoJson@6.21.5
 python -m pip install adafruit-nrfutil==0.5.3.post16 'setuptools<81'
-arduino-cli compile --fqbn Seeeduino:nrf52:xiaonRF52840Plus --output-dir firmware/build firmware/toxiq_v0
+python firmware/scripts/single_sketch.py
+arduino-cli compile --fqbn Seeeduino:nrf52:xiaonRF52840Plus --output-dir firmware/build firmware/build/TOXIQ_V0
 python firmware/scripts/package.py --core <cesta-ke-core-1.1.13>
 ```
 
-CI sestavuje zdrojový sketch pro Plus, ověřuje host C++ testy konfigurace, HID kódů a CRC a kontroluje adresy UF2, aby nezahrnovalo bootloader ani uložené profily.
+CI sestavuje přímo exportovaný jediný `.ino` pro Plus, ověřuje host C++ testy konfigurace, HID kódů a CRC a kontroluje adresy UF2, aby nezahrnovalo bootloader ani uložené profily. Zdrojové moduly v repozitáři zůstávají kvůli údržbě a testům; generátor je sloučí beze změny funkcí do souboru pro Arduino IDE.

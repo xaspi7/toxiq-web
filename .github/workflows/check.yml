@@ -59,7 +59,8 @@ jobs:
       - run: arduino-cli core install Seeeduino:nrf52@1.1.13 --additional-urls https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json
       - run: arduino-cli lib install ArduinoJson@6.21.5
       - run: python firmware/scripts/test.py "$HOME/Arduino/libraries/ArduinoJson/src"
-      - run: arduino-cli compile --fqbn Seeeduino:nrf52:xiaonRF52840Plus --output-dir firmware/build firmware/toxiq_v0
+      - run: python firmware/scripts/single_sketch.py
+      - run: arduino-cli compile --fqbn Seeeduino:nrf52:xiaonRF52840Plus --output-dir firmware/build firmware/build/TOXIQ_V0
       - run: python firmware/scripts/package.py --core "$HOME/.arduino15/packages/Seeeduino/hardware/nrf52/1.1.13"
       - uses: actions/upload-artifact@v4
         with:
