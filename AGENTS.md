@@ -23,6 +23,7 @@ The source of truth is TOXIQ Brand Manual v0.2, approved by Adam. The original m
 - English is the default in the website and app, with a persistent EN/CZ switch (authorized on 2026-10-04). Technical language stays clear and factual.
 - The approved website revision uses three pages: Home (`index.html`), Pad (`pad.html`), and App (`app.html`). Keep the home concise, navigation direct, and both colourways equally considered. Prioritize phone layouts and keep the main action near the introduction. No visitor-facing GitHub links; the Windows installer is served from the site's own downloads path.
 - Restrained scroll-linked product and signature-Q motion is authorized. Preserve Q geometry, avoid scroll interception, and provide a static reduced-motion version.
+- SVGs used as CSS masks must have a transparent background. `signature-q-mask.svg` preserves the approved Q paths without the manual's page background. Check masks and motion in WebKit as well as Chromium, including phone viewports and reduced motion.
 - Keep it dependency-free unless a concrete feature justifies a dependency.
 - Preserve keyboard accessibility, visible focus, reduced-motion support and mobile layout.
 - Before delivery run `npm run check`, `npm run build`, and browser QA of colorways, profile examples and theme links. Check narrow screens for overflow.

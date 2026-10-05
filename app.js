@@ -135,11 +135,18 @@
     scheduled = false;
     stages.forEach(stage => {
       const rect = stage.getBoundingClientRect();
-      const progress = reducedMotion.matches ? 0 : Math.max(0, Math.min(1, (window.innerHeight * .65 - rect.top) / window.innerHeight));
-      stage.style.setProperty('--lift', `${(progress * -24).toFixed(2)}px`);
-      stage.style.setProperty('--turn', `${(progress * -4).toFixed(2)}deg`);
-      stage.style.setProperty('--q-turn', `${(-14 + progress * 19).toFixed(2)}deg`);
-      stage.style.setProperty('--q-shift', `${(progress * 36).toFixed(2)}px`);
+      const start = html.dataset.page === 'home' ? 0 : Math.max(0, rect.top + window.scrollY - window.innerHeight * .72);
+      // A short page needs a short motion range; viewport-wide interpolation
+      // barely moved the product on phones, even at the end of the page.
+      const distance = Math.max(140, Math.min(320, rect.height * .5));
+      const progress = Math.max(0, Math.min(1, (window.scrollY - start) / distance));
+      const still = reducedMotion.matches;
+      stage.style.setProperty('--lift', `${(still ? 0 : 12 - progress * 24).toFixed(2)}px`);
+      stage.style.setProperty('--turn', `${(still ? 0 : 4 - progress * 12).toFixed(2)}deg`);
+      stage.style.setProperty('--scale', (still ? 1 : .97 + progress * .06).toFixed(3));
+      stage.style.setProperty('--q-turn', `${(still ? -22 : -22 + progress * 58).toFixed(2)}deg`);
+      stage.style.setProperty('--q-shift', `${(still ? 0 : 18 - progress * 52).toFixed(2)}px`);
+      stage.style.setProperty('--q-slide', `${(still ? 0 : -8 + progress * 26).toFixed(2)}px`);
     });
   }
   function requestMotion() {
