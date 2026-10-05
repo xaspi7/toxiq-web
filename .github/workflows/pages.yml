@@ -27,7 +27,7 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 25
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -60,7 +60,9 @@ jobs:
             // complete artifact last so the installer is never replaced by that build.
             const site = await github.request('GET /repos/{owner}/{repo}/pages', context.repo);
             if (site.data.build_type !== 'legacy') return;
-            for (let attempt = 0; attempt < 24; attempt++) {
+            // Source-branch jobs can remain queued for several minutes. The
+            // previous four-minute wait expired before a successful publication.
+            for (let attempt = 0; attempt < 90; attempt++) {
               const { data } = await github.rest.actions.listWorkflowRunsForRepo({
                 ...context.repo, branch: 'main', per_page: 30
               });
