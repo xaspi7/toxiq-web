@@ -128,35 +128,23 @@
   document.querySelectorAll('img[data-variant]').forEach(img => readyImage(img).catch(() => {}));
   document.getElementById('year').textContent = String(new Date().getFullYear());
 
-  // Scroll only changes the product and approved Q. No scroll interception or loop.
+  // The browser drives scroll motion. No scroll listener, layout reads or
+  // inherited custom-property writes on each frame. Older browsers get one
+  // compositor-friendly entrance instead of trying to follow touch scrolling.
   const stages = [...document.querySelectorAll('[data-motion]')];
-  let scheduled = false;
-  function drawMotion() {
-    scheduled = false;
-    stages.forEach(stage => {
-      const rect = stage.getBoundingClientRect();
-      const start = html.dataset.page === 'home' ? 0 : Math.max(0, rect.top + window.scrollY - window.innerHeight * .72);
-      // A short page needs a short motion range; viewport-wide interpolation
-      // barely moved the product on phones, even at the end of the page.
-      const distance = Math.max(140, Math.min(320, rect.height * .5));
-      const progress = Math.max(0, Math.min(1, (window.scrollY - start) / distance));
-      const still = reducedMotion.matches;
-      stage.style.setProperty('--lift', `${(still ? 0 : 12 - progress * 24).toFixed(2)}px`);
-      stage.style.setProperty('--turn', `${(still ? 0 : 4 - progress * 12).toFixed(2)}deg`);
-      stage.style.setProperty('--scale', (still ? 1 : .97 + progress * .06).toFixed(3));
-      stage.style.setProperty('--q-turn', `${(still ? -22 : -22 + progress * 58).toFixed(2)}deg`);
-      stage.style.setProperty('--q-shift', `${(still ? 0 : 18 - progress * 52).toFixed(2)}px`);
-      stage.style.setProperty('--q-slide', `${(still ? 0 : -8 + progress * 26).toFixed(2)}px`);
-    });
-  }
-  function requestMotion() {
-    if (!scheduled) { scheduled = true; window.requestAnimationFrame(drawMotion); }
-  }
+  const nativeScrollMotion = CSS.supports('animation-timeline', 'scroll(root block)') && CSS.supports('animation-range', '0px 240px');
   if (stages.length) {
-    window.addEventListener('scroll', requestMotion, { passive: true });
-    window.addEventListener('resize', requestMotion, { passive: true });
-    reducedMotion.addEventListener('change', requestMotion);
-    requestMotion();
+    stages.forEach(stage => { stage.dataset.motionEngine = nativeScrollMotion ? 'scroll' : 'entry'; });
+    if (!nativeScrollMotion && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          entry.target.dataset.motionVisible = 'true';
+          observer.unobserve(entry.target);
+        });
+      }, { threshold: .15 });
+      stages.forEach(stage => observer.observe(stage));
+    }
   }
   const legacyPages = { '#produkt': 'pad.html', '#makra': 'pad.html#profiles', '#jak-to-funguje': 'pad.html', '#downloads': 'app.html', '#kontakt': 'app.html' };
   function redirectLegacyLink() {

@@ -12,8 +12,8 @@
   <script>try{const c=JSON.parse(localStorage.getItem('toxiq.concept.v1')||'null')?.colorway;if(c==='white'){document.documentElement.dataset.colorway=c;document.querySelector('meta[name="theme-color"]').content='#F4F4F0';}if(localStorage.getItem('toxiq-language')==='cs')document.documentElement.lang='cs';}catch{}</script>
   <link rel="icon" type="image/svg+xml" href="assets/signature-q.svg?v=e16ea2b237f4">
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/InterVariable.woff2?v=693b77d4f32e" crossorigin>
-  <link rel="stylesheet" href="styles.css?v=06093f81a210">
-  <script src="app.js?v=000dbf034754" defer></script>
+  <link rel="stylesheet" href="styles.css?v=69b6977e2f22">
+  <script src="app.js?v=3b339ebf93b9" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main" data-en="Skip to content" data-cs="Přejít na obsah">Skip to content</a>
@@ -36,6 +36,7 @@
         <h1 id="hero-heading">GG.<br><span class="accent">GO NEXT.</span></h1>
         <p class="hero-description" data-en="Six programmable keys for your messages and shortcuts." data-cs="Šest programovatelných kláves pro tvoje zprávy a zkratky.">Six programmable keys for your messages and shortcuts.</p>
         <div class="hero-actions"><a class="button button-primary" href="pad.html"><span data-en="Explore the pad" data-cs="Prohlédnout pad">Explore the pad</span><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a><a class="button button-secondary" href="app.html"><span data-en="Get the app" data-cs="Stáhnout apku">Get the app</span><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 3v13m-5-5 5 5 5-5M5 18v3h14v-3"/></svg></a></div>
+        <a class="text-action hero-scroll-link" href="#use-cases"><span data-en="What can it do?" data-cs="Co s ním můžeš dělat?">What can it do?</span><span aria-hidden="true">↓</span></a>
       </div>
       <div class="hero-product"><div class="product-stage" data-motion>
           <span class="signature-field" aria-hidden="true"></span>
@@ -47,6 +48,28 @@
           <button type="button" data-colorway="black" aria-pressed="true"><span class="colour-dot dot-black" aria-hidden="true"></span><span data-en="Black" data-cs="Černá">Black</span></button>
           <button type="button" data-colorway="white" aria-pressed="false"><span class="colour-dot dot-white" aria-hidden="true"></span><span data-en="White" data-cs="Bílá">White</span></button>
         </div></div>
+    </section>
+    <section id="use-cases" class="home-uses wrap" aria-labelledby="uses-heading">
+      <div class="section-intro">
+        <h2 id="uses-heading"><span data-en="One press." data-cs="Jeden stisk.">One press.</span><br><span class="accent" data-en="Your next move." data-cs="Tvůj další tah.">Your next move.</span></h2>
+        <a class="text-action" href="pad.html#profiles"><span data-en="Explore the profiles" data-cs="Prohlédnout profily">Explore the profiles</span><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a>
+      </div>
+      <ol class="use-examples" aria-label="Example key mappings" data-en-aria-label="Example key mappings" data-cs-aria-label="Ukázkové přiřazení kláves">
+        <li><p class="use-context" data-en="Game chat" data-cs="Herní chat">Game chat</p><div class="use-example"><kbd class="example-key">BARON</kbd><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg><p class="use-result">BARON NOW</p></div></li>
+        <li><p class="use-context" data-en="Game shortcuts" data-cs="Herní zkratky">Game shortcuts</p><div class="use-example"><kbd class="example-key">MIC</kbd><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg><p class="use-result" data-en="Mic on / off" data-cs="Mikrofon zap. / vyp.">Mic on / off</p></div></li>
+        <li><p class="use-context" data-en="Creative work" data-cs="Tvorba">Creative work</p><div class="use-example"><kbd class="example-key">SAVE</kbd><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg><p class="use-result">Ctrl + S</p></div></li>
+      </ol>
+    </section>
+    <section class="home-app wrap" aria-labelledby="home-app-heading">
+      <div>
+        <p class="eyebrow">TOXIQ Configurator</p>
+        <h2 id="home-app-heading"><span data-en="Set it." data-cs="Nastav.">Set it.</span><br><span class="accent" data-en="Save it." data-cs="Ulož.">Save it.</span></h2>
+        <p class="hero-description" data-en="Configure your keys in the Windows app." data-cs="Nastav si klávesy v apce pro Windows.">Configure your keys in the Windows app.</p>
+        <a class="text-action" href="app.html"><span data-en="See the app" data-cs="Prohlédnout apku">See the app</span><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a>
+      </div>
+      <figure class="home-app-preview">
+        <div class="asset-pair app-screen"><img data-variant="black" src="assets/configurator-dark.webp?v=709d1e8fd058" width="1120" height="760" alt="TOXIQ Configurator showing profiles, six keys and the key editor." data-en-alt="TOXIQ Configurator showing profiles, six keys and the key editor." data-cs-alt="TOXIQ Configurator s profily, šesti klávesami a editorem kláves." decoding="async"><img data-variant="white" src="assets/configurator-light.webp?v=947d4f9cfc84" width="1120" height="760" alt="TOXIQ Configurator showing profiles, six keys and the key editor." data-en-alt="TOXIQ Configurator showing profiles, six keys and the key editor." data-cs-alt="TOXIQ Configurator s profily, šesti klávesami a editorem kláves." decoding="async" aria-hidden="true"></div>
+      </figure>
     </section>
   </main>
   <footer class="site-footer wrap"><p>© <span id="year">2026</span> TOXIQ</p><a href="app.html"><span data-en="Get the app" data-cs="Stáhnout apku">Get the app</span><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a></footer>
